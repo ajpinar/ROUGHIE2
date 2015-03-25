@@ -12,6 +12,7 @@
 #define GC_START 4
 #define GC_ROLL 5
 #define GC_LINEAR 6
+#define GC_ROTARY 7
 
 #define ME_NOSE_DOWN 0
 #define ME_GLIDE_DOWN 1
@@ -42,10 +43,14 @@ struct param_t {
   float linkp;
   float linki;
   float linkd;
+  float rollkp;
   int linNoseDownTarget;
   int linNoseUpTarget;
   float rateScale;
   float rollAngle;
+  float rollTarget;
+  float rollLimit;
+  bool fliproll;
 } 
 param;
 // linpos 850 rotpos 680 tankpos 400
@@ -64,18 +69,21 @@ const int suicide = 49;
 const int pwrOn = 47;
 
 const int tankmid = 285;
-const int linmid = 515;
-const int rotmid = 640;
+const int linmid = 450;
+const int rotmid = 457;
 const int linfrontlimit = 140;
 const int linbacklimit = 760;
 const int tankbacklimit = 70;
 const int tankfrontlimit = 500;
-const int rotlowlimit = 600;
-const int rothighlimit = 680;
+const int rotlowlimit = linmid - 150;
+const int rothighlimit = linmid + 150;
 
 float I = 0;
+float Ir = 0;
 float error_act = 0;
+float error_act_r = 0;
 float error_prev = 0;
+float error_prev_r = 0;
 
 int tankLevel = A0;
 int linPos = A1;
@@ -83,7 +91,7 @@ int linPos = A1;
 //int linBackLimit = 890;
 int rotPos = A7;
 
-char *help = "Commands: \n\tparams will show the current parameters and acceptable ranges \n\treset will center linear mass and water tank (for trimming)\n\tupdate [-rothighlimit|-rotlowlimit|-linfrontlimit|-linbacklimit|-tankhighlimit|-tanklowlimit|-linpos|-rotpos\n\t\t-tankpos|-linrate|-rotrate|-destime|-risetime|-tankmid|-linmid|-rotmid|-allowedWorkTime -linNoseUpTarget\n\t\t -linNoseDownTarget -linkp -linki -linkd -rateScale] [newValue]\n\tcurrentpos shows current position of actuators\n\tstart starts glide cycle\n\tstop stops glide cycle\n\tlinear toggles linear PID controller on/off\n\trollto [num]\tTurns Glider to [num]";
+char *help = "Commands: \n\tparams will show the current parameters and acceptable ranges \n\treset will center linear mass and water tank (for trimming)\n\tupdate [-rothighlimit|-rotlowlimit|-linfrontlimit|-linbacklimit|-tankhighlimit|-tanklowlimit|-linpos|-rotpos\n\t\t-tankpos|-linrate|-rotrate|-destime|-risetime|-tankmid|-linmid|-rotmid|-allowedWorkTime -linNoseUpTarget\n\t\t -linNoseDownTarget -linkp -linki -linkd -rateScale -rollkp -rollLimit] [newValue]\n\tcurrentpos shows current position of actuators\n\tstart starts glide cycle\n\tstop stops glide cycle\n\tlinear toggles linear PID controller on/off\n\trotary toggle toggles rotary controller on/off with default target of 0 degrees\n\trotary turn X rolls to X degrees\n\tfliproll flips the IMU roll angle\nIf the rotary motor acts weird during reset (goes to limit) keep calling reset until it centers...it should eventually center";
 
 void setup()
 {
@@ -91,17 +99,17 @@ void setup()
   um7.begin(&Serial3);
   Serial.begin(9600);
   Serial.setTimeout(10);
-  Serial.println("```````````````````````````````````````````````````````````````````````````````\n   @@@@@'     @@@@        @@@@@@         ,@@@@@@`              @'@+,``:@,      \n   @@@@@@     @@@@       `@@@@@@        @@@@@@@@.            `@@@        @     \n   @@@@@@#    @@@@       @@@@@@@+      @@@@@@@@@:          `@             #    \n   @@@@@@@    @@@@      `@@@@@@@@      @@@@@:`,#+         #`              ,    \n   @@@@@@@@   @@@@      @@@@`@@@@      @@@@'            .+                 .   \n   @@@@@@@@`  @@@@     .@@@@ '@@@#     @@@@@`          #`                  :   \n   @@@@@@@@@  @@@@     @@@@.  @@@@      @@@@@:        @                    ,   \n   @@@@ @@@@. @@@@    ,@@@@,,,@@@@.      @@@@@#      @                     `   \n  `@@@# #@@@@ @@@#    @@@@@@@@@@@@@       @@@@@#                  ```     :    \n  .@@@#  @@@@'@@@+   ;@@@@@@@@@@@@@        @@@@@:,      ',,,   ;,,,,,,.   @    \n  ,@@@'  :@@@@@@@;   @@@@@@@@@@@@@@;        @@@@#.     `,,,,,  ;,,++,,,   .    \n  ;@@@;   @@@@@@@:  +@@@@      @@@@@  @@.  :@@@@#.     ;,,+,,  ;,, `,,.  #     \n  '@@@;   `@@@@@@,  @@@@@      ,@@@@  '@@@@@@@@@,`    `,,`',,  ',,,,,:   .     \n  #@@@:    @@@@@@. #@@@@        @@@@# :@@@@@@@@+,`    :,,,,,,, +,,++,,, @      \n  @@@@:     @@@@@. @@@@@        @@@@@ .@@@@@@@',,`   .,,'++',, +,,  ,,,        \n                                              +,,,,,,:,,   +,,`+,,,,,,`        \n                                              +''''';''`   :''`+'''''.         \n                                                                               \nNonlinear  and      Autonomous        Systems          Laboratory              \n");
+  Serial.println("\n```````````````````````````````````````````````````````````````````````````````\n   @@@@@'     @@@@        @@@@@@         ,@@@@@@`              @'@+,``:@,      \n   @@@@@@     @@@@       `@@@@@@        @@@@@@@@.            `@@@        @     \n   @@@@@@#    @@@@       @@@@@@@+      @@@@@@@@@:          `@             #    \n   @@@@@@@    @@@@      `@@@@@@@@      @@@@@:`,#+         #`              ,    \n   @@@@@@@@   @@@@      @@@@`@@@@      @@@@'            .+                 .   \n   @@@@@@@@`  @@@@     .@@@@ '@@@#     @@@@@`          #`                  :   \n   @@@@@@@@@  @@@@     @@@@.  @@@@      @@@@@:        @                    ,   \n   @@@@ @@@@. @@@@    ,@@@@,,,@@@@.      @@@@@#      @                     `   \n  `@@@# #@@@@ @@@#    @@@@@@@@@@@@@       @@@@@#                  ```     :    \n  .@@@#  @@@@'@@@+   ;@@@@@@@@@@@@@        @@@@@:,      ',,,   ;,,,,,,.   @    \n  ,@@@'  :@@@@@@@;   @@@@@@@@@@@@@@;        @@@@#.     `,,,,,  ;,,++,,,   .    \n  ;@@@;   @@@@@@@:  +@@@@      @@@@@  @@.  :@@@@#.     ;,,+,,  ;,, `,,.  #     \n  '@@@;   `@@@@@@,  @@@@@      ,@@@@  '@@@@@@@@@,`    `,,`',,  ',,,,,:   .     \n  #@@@:    @@@@@@. #@@@@        @@@@# :@@@@@@@@+,`    :,,,,,,, +,,++,,, @      \n  @@@@:     @@@@@. @@@@@        @@@@@ .@@@@@@@',,`   .,,'++',, +,,  ,,,        \n                                              +,,,,,,:,,   +,,`+,,,,,,`        \n                                              +''''';''`   :''`+'''''.         \n                                                                               \nNonlinear  and      Autonomous        Systems          Laboratory              \n");
   //Serial.println("RRRRRRRRRRRRRRRRR        OOOOOOOOO     UUUUUUUU     UUUUUUUU       GGGGGGGGGGGGGHHHHHHHHH     HHHHHHHHHIIIIIIIIIIEEEEEEEEEEEEEEEEEEEEEE            VVVVVVVV           VVVVVVVV 222222222222222   \nR::::::::::::::::R     OO:::::::::OO   U::::::U     U::::::U    GGG::::::::::::GH:::::::H     H:::::::HI::::::::IE::::::::::::::::::::E            V::::::V           V::::::V2:::::::::::::::22 \nR::::::RRRRRR:::::R  OO:::::::::::::OO U::::::U     U::::::U  GG:::::::::::::::GH:::::::H     H:::::::HI::::::::IE::::::::::::::::::::E            V::::::V           V::::::V2::::::222222:::::2 \nRR:::::R     R:::::RO:::::::OOO:::::::OUU:::::U     U:::::UU G:::::GGGGGGGG::::GHH::::::H     H::::::HHII::::::IIEE::::::EEEEEEEEE::::E            V::::::V           V::::::V2222222     2:::::2 \n  R::::R     R:::::RO::::::O   O::::::O U:::::U     U:::::U G:::::G       GGGGGG  H:::::H     H:::::H    I::::I    E:::::E       EEEEEE             V:::::V           V:::::V             2:::::2 \n  R::::R     R:::::RO:::::O     O:::::O U:::::D     D:::::UG:::::G                H:::::H     H:::::H    I::::I    E:::::E                           V:::::V         V:::::V              2:::::2 \n  R::::RRRRRR:::::R O:::::O     O:::::O U:::::D     D:::::UG:::::G                H::::::HHHHH::::::H    I::::I    E::::::EEEEEEEEEE                  V:::::V       V:::::V            2222::::2  \n  R:::::::::::::RR  O:::::O     O:::::O U:::::D     D:::::UG:::::G    GGGGGGGGGG  H:::::::::::::::::H    I::::I    E:::::::::::::::E                   V:::::V     V:::::V        22222::::::22   \n  R::::RRRRRR:::::R O:::::O     O:::::O U:::::D     D:::::UG:::::G    G::::::::G  H:::::::::::::::::H    I::::I    E:::::::::::::::E                    V:::::V   V:::::V       22::::::::222     \n  R::::R     R:::::RO:::::O     O:::::O U:::::D     D:::::UG:::::G    GGGGG::::G  H::::::HHHHH::::::H    I::::I    E::::::EEEEEEEEEE                     V:::::V V:::::V       2:::::22222        \n  R::::R     R:::::RO:::::O     O:::::O U:::::D     D:::::UG:::::G        G::::G  H:::::H     H:::::H    I::::I    E:::::E                                V:::::V:::::V       2:::::2             \n  R::::R     R:::::RO::::::O   O::::::O U::::::U   U::::::U G:::::G       G::::G  H:::::H     H:::::H    I::::I    E:::::E       EEEEEE                    V:::::::::V        2:::::2             \nRR:::::R     R:::::RO:::::::OOO:::::::O U:::::::UUU:::::::U  G:::::GGGGGGGG::::GHH::::::H     H::::::HHII::::::IIEE::::::EEEEEEEE:::::E ,,,,,,              V:::::::V         2:::::2       222222\nR::::::R     R:::::R OO:::::::::::::OO   UU:::::::::::::UU    GG:::::::::::::::GH:::::::H     H:::::::HI::::::::IE::::::::::::::::::::E ,::::,               V:::::V          2::::::2222222:::::2\nR::::::R     R:::::R   OO:::::::::OO       UU:::::::::UU        GGG::::::GGG:::GH:::::::H     H:::::::HI::::::::IE::::::::::::::::::::E ,::::,                V:::V           2::::::::::::::::::2\nRRRRRRRR     RRRRRRR     OOOOOOOOO           UUUUUUUUU             GGGGGG   GGGGHHHHHHHHH     HHHHHHHHHIIIIIIIIIIEEEEEEEEEEEEEEEEEEEEEE ,:::,,                 VVV            22222222222222222222\n                                                                                                                                       ,:::,\n                                                                                                                                                                                           ,,,,   \n");
   Serial.println(help);
   delay(1000); //Wait for all the printing
 
   // initial parameters
   param.linPos = 400; // Limits are 138 945
-  param.rotPos = 600; // 600 to 680
+  param.rotPos = rotmid; // 600 to 680
   param.tankPos = 285; // 70 to 500
   param.linRate = 200;
-  param.rotRate = 20;
+  param.rotRate = 255;
   param.linFrontLimit = linfrontlimit;
   param.linBackLimit = linbacklimit;
   param.tankBackLimit = tankbacklimit;
@@ -119,7 +127,11 @@ void setup()
   param.linkp = 10;
   param.linki = 0;
   param.linkd = 0;
+  param.rollkp = 10;
   param.rateScale = 1;
+  param.rollTarget = 0;
+  param.fliproll = 0;
+  param.rollLimit = 15;
 
   gliderStateMachine(GC_BEGIN);
   gliderStateMachine(GC_STOP);
@@ -246,6 +258,11 @@ void loop()
         Serial.print("Linear Kd updated to: ");
         Serial.println(param.linkd);
       }
+      if(strcmp(arg[1], "-rollkp") == 0) {
+        param.rollkp = atoi(arg[2]);        
+        Serial.print("Roll Kp updated to: ");
+        Serial.println(param.rollkp);
+      }
       if(strcmp(arg[1], "-linNoseUpTarget") == 0) {
         param.linNoseUpTarget = atoi(arg[2]);
         Serial.print("PID Nose up target set to: ");
@@ -261,6 +278,11 @@ void loop()
         Serial.print("Rate Scale updated to: ");
         Serial.println(param.rateScale);
       }
+      if(strcmp(arg[1], "-rollLimit") == 0) {
+        param.rollLimit = atoi(arg[2]);
+        Serial.print("Roll Limit updated to: ");
+        Serial.println(param.rollLimit);
+      }
       else {
         Serial.println(help);
       }
@@ -275,6 +297,24 @@ void loop()
     }
     else if(strcmp(arg[0], "linear") == 0) {
       gliderStateMachine(GC_LINEAR);
+    }
+    else if(strcmp(arg[0], "fliproll") == 0) {
+      Serial.print("fliproll set to ");
+      param.fliproll = !param.fliproll;
+      Serial.println(param.fliproll);
+    }
+    else if(strcmp(arg[0], "rotary") == 0) {
+      if(strcmp(arg[1], "turn") == 0) {
+        param.rollTarget = atoi(arg[2]);
+        Serial.print("Desired roll angle set to ");
+        Serial.print(param.rollTarget);
+        Serial.println(" degrees.");
+      }
+      else if(strcmp(arg[1], "toggle") == 0) {
+        param.rollTarget = 0;
+        Serial.println("Desired roll angle set to 0 degrees.");
+        gliderStateMachine(GC_ROTARY);
+      }
     }
     else if(strcmp(arg[0], "params") == 0) { // Current parameters
       Serial.print("Desired Rotational Mass Position: ");
@@ -347,6 +387,7 @@ void gliderStateMachine(int cmd) {
   static bool pumpDone;        // If the pump is done pumping
   static bool linDone;         // If the linear mass is done moving
   static bool DoLinPID = 0;
+  static bool RotaryControlOn = 0;
   static unsigned long int t0; // initial time of current state
   
   if(cmd == GC_START) {
@@ -359,7 +400,14 @@ void gliderStateMachine(int cmd) {
   }
   
   if(cmd == GC_NULL) { // continue normal state machine run
-    //Serial.println(um7.roll);
+//    Serial.print("Roll: ");
+//    Serial.println(um7.roll);
+//    Serial.print("Rotary position: ");
+//    Serial.println(getFiltAnalog(rotPos));
+    if(RotaryControlOn) {
+      param.rotRate = rollController(param.rollTarget);
+      analogWrite(motBPWM, param.rotRate);
+    }
     if(!enGlider) return;
     
     switch(state) { // select current state
@@ -379,6 +427,11 @@ void gliderStateMachine(int cmd) {
           entry = 0;
           pumpDone = 0;
           linDone = 0;
+        }
+        
+        if(RotaryControlOn) {
+          param.rotRate = rollController(param.rollTarget);
+          analogWrite(motBPWM, param.rotRate);
         }
         
         // Turn pump off when it's time
@@ -447,6 +500,11 @@ void gliderStateMachine(int cmd) {
             t0 = millis();
             entry = 0;
           }
+          
+          if(RotaryControlOn) {
+            param.rotRate = rollController(param.rollTarget);
+            analogWrite(motBPWM, param.rotRate);
+          }
          
           if(DoLinPID) {
             int ret = um7.refresh();
@@ -490,6 +548,11 @@ void gliderStateMachine(int cmd) {
           entry = 0;
           pumpDone = 0;
           linDone = 0;
+        }
+        
+        if(RotaryControlOn) {
+          param.rotRate = rollController(param.rollTarget);
+          analogWrite(motBPWM, param.rotRate);
         }
         
         //turn off pump when it's time
@@ -558,6 +621,11 @@ void gliderStateMachine(int cmd) {
           entry = 0;
         }
         
+        if(RotaryControlOn) {
+          param.rotRate = rollController(param.rollTarget);
+          analogWrite(motBPWM, param.rotRate);
+        }
+        
         if(DoLinPID) {
           int ret = um7.refresh();
           if(um7.updated_p) {
@@ -588,7 +656,8 @@ void gliderStateMachine(int cmd) {
       case ME_PAUSE:
         digitalWrite(pumpOn, LOW);
         digitalWrite(pwrOn, LOW);
-        digitalWrite(motAPWM, 0);
+        analogWrite(motAPWM, 0);
+        analogWrite(motBPWM, 0);
         digitalWrite(motStdby, LOW);
       break;
     }
@@ -631,10 +700,8 @@ void gliderStateMachine(int cmd) {
 
   }
   
-  if(cmd == GC_RESET) { // GC_RESET to trimming position
-    //moveRotMass(param.rotPos, param.rotRate);
+  if(cmd == GC_RESET) { // GC_RESET to trimming position    
     moveWater(param.tankMid);
-    
     //turn off pump when it's time
       while(abs(getFiltAnalog(tankLevel)-param.tankMid) > 20) {
       }
@@ -649,6 +716,31 @@ void gliderStateMachine(int cmd) {
       digitalWrite(motAPWM, 0);
       digitalWrite(motStdby, LOW);
       Serial.println("Linear Mass Reset");
+    int t = 0;
+    while(t < 50) {
+      int temp = getFiltAnalog(rotPos);
+      t++;
+    }
+    moveRotMass(param.rotMid, param.rotRate);//mid is 770
+    // Turn rotational mass off when it's time
+//    Serial.println(getFiltAnalog(rotPos));
+//    Serial.print("Rot mid");
+//    Serial.println(param.rotMid);
+//    Serial.println(abs(getFiltAnalog(rotPos) - param.rotMid));
+    delay(100);
+      while(abs(getFiltAnalog(rotPos)-param.rotMid) > 5) {
+        // Limits
+        if((getFiltAnalog(rotPos) <= param.rotLowLimit) || (getFiltAnalog(rotPos) >= param.rotHighLimit)) {
+          Serial.println("OUT OF LIMITS");
+          break;
+        }
+//        Serial.println(getFiltAnalog(rotPos));
+//        delay(250);
+      }
+      analogWrite(motBPWM, 0);
+      digitalWrite(motStdby, LOW);
+      Serial.println(getFiltAnalog(rotPos));
+      Serial.println("Rotary Mass Reset");
     
     enGlider = 0;
   }
@@ -679,6 +771,23 @@ void gliderStateMachine(int cmd) {
     else {
       DoLinPID = 1;
       Serial.println("Linear PID on");
+    }
+  }
+  
+  if(cmd == GC_ROTARY) {
+    if(RotaryControlOn) {
+      RotaryControlOn = 0;
+      Serial.println("Rotary Control Off");
+      error_act_r = 0;
+      error_prev_r = 0;
+      Ir = 0;
+      param.rotRate = 255;
+      analogWrite(motBPWM, 0);
+      digitalWrite(motStdby, LOW);
+    }
+    else {
+      RotaryControlOn = 1;
+      Serial.println("Rotary Control On");
     }
   }
   
@@ -743,7 +852,7 @@ void moveLinMass(int dest, int rate) {
     param.linBackLimit = linbacklimit;
     dest = param.linBackLimit;
   }
-  if(abs(currentPos - dest) < 5) {
+  if(abs(currentPos - dest) < 20) {
     Serial.println("Already there");
     return; // Already there
   }
@@ -763,19 +872,32 @@ void moveLinMass(int dest, int rate) {
 }
 void moveRotMass(int dest, int rate) {
   int currentPos = getFiltAnalog(rotPos);
+  delay(250);
+  currentPos = getFiltAnalog(rotPos);
+  delay(250);
+  currentPos = getFiltAnalog(rotPos);
+  if(currentPos == 0) {
+    Serial.println("Draw wire (linmass) reads zero!");
+    Serial.println("...and also Eric sucks.");
+    return;
+  }
   Serial.print("Rotational Mass Start: ");
   Serial.println(currentPos);
-  if(dest <= rotlowlimit) {
+  if(dest < rotlowlimit) {
     Serial.println("Too far");
+    Serial.print("Setting destination to ");
+    Serial.println(rotlowlimit);
     param.rotLowLimit = rotlowlimit;
     dest = param.rotLowLimit;
   }
-  if(dest >= rothighlimit) {
+  if(dest > rothighlimit) {
     Serial.println("Too far");
+    Serial.print("Setting destination to ");
+    Serial.println(rothighlimit);
     param.rotHighLimit = rothighlimit;
     dest = param.rotHighLimit;
   }
-  if(abs(currentPos - dest) < 5) {
+  if(abs(currentPos - dest) <= 5) {
     Serial.println("Already there");
     return; // Already there
   }
@@ -789,12 +911,8 @@ void moveRotMass(int dest, int rate) {
     digitalWrite(motBConf2, HIGH);
   }
   digitalWrite(motStdby, HIGH);
-  while(abs(getFiltAnalog(rotPos)-dest) > 5) {
-    digitalWrite(motBPWM, rate);
-  }
-  digitalWrite(motBPWM, 0);
-  digitalWrite(motStdby, LOW);
-  Serial.println("Rotational Mass Done");
+  digitalWrite(motBPWM, rate);
+  
   return;
 }
 void moveWater(int dest) {
@@ -921,6 +1039,76 @@ float linMassRatePID(int dest) {
   else {
     digitalWrite(motAConf1, HIGH);//backward reverse pins
     digitalWrite(motAConf2, LOW);
+  }
+  digitalWrite(motStdby, HIGH);//turn on
+  return rate;
+}
+
+float rollController(float dest) {
+  float kp;
+  kp = param.rollkp;
+  float P, rate;
+  int currentPos = getFiltAnalog(rotPos);
+
+  if(dest < -param.rollLimit) {//check bounds
+    Serial.println("Cannot roll that far forward");
+    Serial.print("Setting destination to ");
+    Serial.println(-param.rollLimit);
+    param.rollTarget = -param.rollLimit;
+    dest = -param.rollLimit;
+  }
+  if(dest > param.rollLimit) {//check bounds
+    Serial.println("Cannot roll that far backward");
+    Serial.print("Setting destination to ");
+    Serial.println(param.rollLimit);
+    param.rollTarget = param.rollLimit;
+    dest = param.rollLimit;
+  }
+  
+  error_prev_r = error_act_r;
+  error_act_r = dest - um7.pitch;
+  P = error_act_r;
+  rate = P*kp;
+  rate = abs(rate);//make it positive rate so things don't get too weird.
+  rate = constrain(rate, 0, 255);
+//  Serial.println(rate);
+  if(rate < 120) {
+    rate = 0;
+  }
+  
+  if(!param.fliproll) {
+    if((getFiltAnalog(rotPos) <= param.rotLowLimit) && (um7.pitch < param.rollTarget)) {
+      rate = 0;
+    }
+    else if((getFiltAnalog(rotPos) >= param.rotHighLimit) && (um7.pitch > param.rollTarget)) {
+      rate = 0;
+    }
+    
+    if(um7.pitch > dest) {//if it has to go forward, set pins to do that
+      digitalWrite(motBConf1, LOW);
+      digitalWrite(motBConf2, HIGH);
+    }
+    else {
+      digitalWrite(motBConf1, HIGH);//backward reverse pins
+      digitalWrite(motBConf2, LOW);
+    }
+  }
+  else {
+    if((getFiltAnalog(rotPos) <= param.rotLowLimit) && (um7.pitch > param.rollTarget)) {
+      rate = 0;
+    }
+    else if((getFiltAnalog(rotPos) >= param.rotHighLimit) && (um7.pitch < param.rollTarget)) {
+      rate = 0;
+    }
+    
+    if(um7.pitch < dest) {//if it has to go forward, set pins to do that
+      digitalWrite(motBConf1, LOW);
+      digitalWrite(motBConf2, HIGH);
+    }
+    else {
+      digitalWrite(motBConf1, HIGH);//backward reverse pins
+      digitalWrite(motBConf2, LOW);
+    }
   }
   digitalWrite(motStdby, HIGH);//turn on
   return rate;
