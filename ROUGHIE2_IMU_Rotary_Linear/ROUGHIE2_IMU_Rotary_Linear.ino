@@ -70,13 +70,13 @@ const int pwrOn = 47;
 
 const int tankmid = 285;
 const int linmid = 450;
-const int rotmid = 457;
+const int rotmid = 700;
 const int linfrontlimit = 140;
-const int linbacklimit = 760;
+const int linbacklimit = 710;
 const int tankbacklimit = 70;
 const int tankfrontlimit = 500;
-const int rotlowlimit = linmid - 150;
-const int rothighlimit = linmid + 150;
+const int rotlowlimit = rotmid - 150;
+const int rothighlimit = rotmid + 150;
 
 float I = 0;
 float Ir = 0;
@@ -99,7 +99,8 @@ void setup()
   um7.begin(&Serial3);
   Serial.begin(9600);
   Serial.setTimeout(10);
-  Serial.println("\n```````````````````````````````````````````````````````````````````````````````\n   @@@@@'     @@@@        @@@@@@         ,@@@@@@`              @'@+,``:@,      \n   @@@@@@     @@@@       `@@@@@@        @@@@@@@@.            `@@@        @     \n   @@@@@@#    @@@@       @@@@@@@+      @@@@@@@@@:          `@             #    \n   @@@@@@@    @@@@      `@@@@@@@@      @@@@@:`,#+         #`              ,    \n   @@@@@@@@   @@@@      @@@@`@@@@      @@@@'            .+                 .   \n   @@@@@@@@`  @@@@     .@@@@ '@@@#     @@@@@`          #`                  :   \n   @@@@@@@@@  @@@@     @@@@.  @@@@      @@@@@:        @                    ,   \n   @@@@ @@@@. @@@@    ,@@@@,,,@@@@.      @@@@@#      @                     `   \n  `@@@# #@@@@ @@@#    @@@@@@@@@@@@@       @@@@@#                  ```     :    \n  .@@@#  @@@@'@@@+   ;@@@@@@@@@@@@@        @@@@@:,      ',,,   ;,,,,,,.   @    \n  ,@@@'  :@@@@@@@;   @@@@@@@@@@@@@@;        @@@@#.     `,,,,,  ;,,++,,,   .    \n  ;@@@;   @@@@@@@:  +@@@@      @@@@@  @@.  :@@@@#.     ;,,+,,  ;,, `,,.  #     \n  '@@@;   `@@@@@@,  @@@@@      ,@@@@  '@@@@@@@@@,`    `,,`',,  ',,,,,:   .     \n  #@@@:    @@@@@@. #@@@@        @@@@# :@@@@@@@@+,`    :,,,,,,, +,,++,,, @      \n  @@@@:     @@@@@. @@@@@        @@@@@ .@@@@@@@',,`   .,,'++',, +,,  ,,,        \n                                              +,,,,,,:,,   +,,`+,,,,,,`        \n                                              +''''';''`   :''`+'''''.         \n                                                                               \nNonlinear  and      Autonomous        Systems          Laboratory              \n");
+//  Serial.println("\n```````````````````````````````````````````````````````````````````````````````\n   @@@@@'     @@@@        @@@@@@         ,@@@@@@`              @'@+,``:@,      \n   @@@@@@     @@@@       `@@@@@@        @@@@@@@@.            `@@@        @     \n   @@@@@@#    @@@@       @@@@@@@+      @@@@@@@@@:          `@             #    \n   @@@@@@@    @@@@      `@@@@@@@@      @@@@@:`,#+         #`              ,    \n   @@@@@@@@   @@@@      @@@@`@@@@      @@@@'            .+                 .   \n   @@@@@@@@`  @@@@     .@@@@ '@@@#     @@@@@`          #`                  :   \n   @@@@@@@@@  @@@@     @@@@.  @@@@      @@@@@:        @                    ,   \n   @@@@ @@@@. @@@@    ,@@@@,,,@@@@.      @@@@@#      @                     `   \n  `@@@# #@@@@ @@@#    @@@@@@@@@@@@@       @@@@@#                  ```     :    \n  .@@@#  @@@@'@@@+   ;@@@@@@@@@@@@@        @@@@@:,      ',,,   ;,,,,,,.   @    \n  ,@@@'  :@@@@@@@;   @@@@@@@@@@@@@@;        @@@@#.     `,,,,,  ;,,++,,,   .    \n  ;@@@;   @@@@@@@:  +@@@@      @@@@@  @@.  :@@@@#.     ;,,+,,  ;,, `,,.  #     \n  '@@@;   `@@@@@@,  @@@@@      ,@@@@  '@@@@@@@@@,`    `,,`',,  ',,,,,:   .     \n  #@@@:    @@@@@@. #@@@@        @@@@# :@@@@@@@@+,`    :,,,,,,, +,,++,,, @      \n  @@@@:     @@@@@. @@@@@        @@@@@ .@@@@@@@',,`   .,,'++',, +,,  ,,,        \n                                              +,,,,,,:,,   +,,`+,,,,,,`        \n                                              +''''';''`   :''`+'''''.         \n                                                                               \nNonlinear  and      Autonomous        Systems          Laboratory              \n");
+  Serial.println("Version 5.21.2015");
   //Serial.println("RRRRRRRRRRRRRRRRR        OOOOOOOOO     UUUUUUUU     UUUUUUUU       GGGGGGGGGGGGGHHHHHHHHH     HHHHHHHHHIIIIIIIIIIEEEEEEEEEEEEEEEEEEEEEE            VVVVVVVV           VVVVVVVV 222222222222222   \nR::::::::::::::::R     OO:::::::::OO   U::::::U     U::::::U    GGG::::::::::::GH:::::::H     H:::::::HI::::::::IE::::::::::::::::::::E            V::::::V           V::::::V2:::::::::::::::22 \nR::::::RRRRRR:::::R  OO:::::::::::::OO U::::::U     U::::::U  GG:::::::::::::::GH:::::::H     H:::::::HI::::::::IE::::::::::::::::::::E            V::::::V           V::::::V2::::::222222:::::2 \nRR:::::R     R:::::RO:::::::OOO:::::::OUU:::::U     U:::::UU G:::::GGGGGGGG::::GHH::::::H     H::::::HHII::::::IIEE::::::EEEEEEEEE::::E            V::::::V           V::::::V2222222     2:::::2 \n  R::::R     R:::::RO::::::O   O::::::O U:::::U     U:::::U G:::::G       GGGGGG  H:::::H     H:::::H    I::::I    E:::::E       EEEEEE             V:::::V           V:::::V             2:::::2 \n  R::::R     R:::::RO:::::O     O:::::O U:::::D     D:::::UG:::::G                H:::::H     H:::::H    I::::I    E:::::E                           V:::::V         V:::::V              2:::::2 \n  R::::RRRRRR:::::R O:::::O     O:::::O U:::::D     D:::::UG:::::G                H::::::HHHHH::::::H    I::::I    E::::::EEEEEEEEEE                  V:::::V       V:::::V            2222::::2  \n  R:::::::::::::RR  O:::::O     O:::::O U:::::D     D:::::UG:::::G    GGGGGGGGGG  H:::::::::::::::::H    I::::I    E:::::::::::::::E                   V:::::V     V:::::V        22222::::::22   \n  R::::RRRRRR:::::R O:::::O     O:::::O U:::::D     D:::::UG:::::G    G::::::::G  H:::::::::::::::::H    I::::I    E:::::::::::::::E                    V:::::V   V:::::V       22::::::::222     \n  R::::R     R:::::RO:::::O     O:::::O U:::::D     D:::::UG:::::G    GGGGG::::G  H::::::HHHHH::::::H    I::::I    E::::::EEEEEEEEEE                     V:::::V V:::::V       2:::::22222        \n  R::::R     R:::::RO:::::O     O:::::O U:::::D     D:::::UG:::::G        G::::G  H:::::H     H:::::H    I::::I    E:::::E                                V:::::V:::::V       2:::::2             \n  R::::R     R:::::RO::::::O   O::::::O U::::::U   U::::::U G:::::G       G::::G  H:::::H     H:::::H    I::::I    E:::::E       EEEEEE                    V:::::::::V        2:::::2             \nRR:::::R     R:::::RO:::::::OOO:::::::O U:::::::UUU:::::::U  G:::::GGGGGGGG::::GHH::::::H     H::::::HHII::::::IIEE::::::EEEEEEEE:::::E ,,,,,,              V:::::::V         2:::::2       222222\nR::::::R     R:::::R OO:::::::::::::OO   UU:::::::::::::UU    GG:::::::::::::::GH:::::::H     H:::::::HI::::::::IE::::::::::::::::::::E ,::::,               V:::::V          2::::::2222222:::::2\nR::::::R     R:::::R   OO:::::::::OO       UU:::::::::UU        GGG::::::GGG:::GH:::::::H     H:::::::HI::::::::IE::::::::::::::::::::E ,::::,                V:::V           2::::::::::::::::::2\nRRRRRRRR     RRRRRRR     OOOOOOOOO           UUUUUUUUU             GGGGGG   GGGGHHHHHHHHH     HHHHHHHHHIIIIIIIIIIEEEEEEEEEEEEEEEEEEEEEE ,:::,,                 VVV            22222222222222222222\n                                                                                                                                       ,:::,\n                                                                                                                                                                                           ,,,,   \n");
   Serial.println(help);
   delay(1000); //Wait for all the printing
@@ -370,6 +371,13 @@ void loop()
       Serial.println(param.linkd);
       Serial.print("Rate scaling: ");
       Serial.println(param.rateScale);
+      Serial.print("Roll kp: ");
+      Serial.println(param.rollkp);
+      
+      Serial.print("Roll target: ");
+      Serial.print(param.rollTarget);
+      Serial.println(" degrees");
+      
     }
       
     else {
@@ -435,7 +443,8 @@ void gliderStateMachine(int cmd) {
         }
         
         // Turn pump off when it's time
-        if(abs(getFiltAnalog(tankLevel)-param.tankBackLimit) < 20) {
+        if(abs(getFiltAnalog(tankLevel)-param.tankBackLimit) < 50) {
+//        if(getFiltAnalog(tankLevel) > (param.tankBackLimit - 35)) {
           digitalWrite(pumpOn, LOW);
           digitalWrite(pwrOn, LOW);
           pumpDone = 1;
@@ -721,7 +730,9 @@ void gliderStateMachine(int cmd) {
       int temp = getFiltAnalog(rotPos);
       t++;
     }
-    moveRotMass(param.rotMid, param.rotRate);//mid is 770
+    if(RotaryControlOn) {
+  Serial.println(RotaryControlOn);
+    moveRotMass(param.rotMid, 250);//mid is 770
     // Turn rotational mass off when it's time
 //    Serial.println(getFiltAnalog(rotPos));
 //    Serial.print("Rot mid");
@@ -741,6 +752,7 @@ void gliderStateMachine(int cmd) {
       digitalWrite(motStdby, LOW);
       Serial.println(getFiltAnalog(rotPos));
       Serial.println("Rotary Mass Reset");
+    }
     
     enGlider = 0;
   }
@@ -1075,12 +1087,12 @@ float rollController(float dest) {
   if(rate < 120) {
     rate = 0;
   }
-  
+// WE WERE HERE  
   if(!param.fliproll) {
-    if((getFiltAnalog(rotPos) <= param.rotLowLimit) && (um7.pitch < param.rollTarget)) {
+    if((getFiltAnalog(rotPos) <= param.rotLowLimit) && (um7.pitch > param.rollTarget)) {
       rate = 0;
     }
-    else if((getFiltAnalog(rotPos) >= param.rotHighLimit) && (um7.pitch > param.rollTarget)) {
+    else if((getFiltAnalog(rotPos) >= param.rotHighLimit) && (um7.pitch < param.rollTarget)) {
       rate = 0;
     }
     
@@ -1093,11 +1105,12 @@ float rollController(float dest) {
       digitalWrite(motBConf2, LOW);
     }
   }
+
   else {
-    if((getFiltAnalog(rotPos) <= param.rotLowLimit) && (um7.pitch > param.rollTarget)) {
+    if((getFiltAnalog(rotPos) <= param.rotLowLimit) && (um7.pitch < param.rollTarget)) {
       rate = 0;
     }
-    else if((getFiltAnalog(rotPos) >= param.rotHighLimit) && (um7.pitch < param.rollTarget)) {
+    else if((getFiltAnalog(rotPos) >= param.rotHighLimit) && (um7.pitch > param.rollTarget)) {
       rate = 0;
     }
     
