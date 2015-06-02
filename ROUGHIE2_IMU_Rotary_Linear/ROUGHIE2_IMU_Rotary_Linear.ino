@@ -55,26 +55,24 @@ struct param_t {
 param;
 // linpos 850 rotpos 680 tankpos 400
 // linpos 250 rotpos 600 tankpos 150
-const int motAPWM = 10;
-const int motAConf1 = 12;
-const int motAConf2 = 8;
-const int motStdby = 13;
-const int motBPWM = 11;
-const int motBConf1 = 7;
-const int motBConf2 = 4;
+const int motAPWM = 2; //changed
+const int motAConf1 = 28; //changed
+const int motAConf2 = 26; //changed
+const int motStdby = 30; //changed
+const int motBPWM = 3; //changed
+const int motBConf1 = 32; //changed
+const int motBConf2 = 34; //changed
 
-const int pumpOn = 53;
-const int pumpDir = 51;
-const int suicide = 49;
-const int pwrOn = 47;
+const int pumpOn = 22; //changed
+const int pumpDir = 24; //changed
 
-const int tankmid = 285;
+const int tankmid = 290;
 const int linmid = 450;
 const int rotmid = 700;
 const int linfrontlimit = 140;
-const int linbacklimit = 710;
-const int tankbacklimit = 70;
-const int tankfrontlimit = 500;
+const int linbacklimit = 750;
+const int tankbacklimit = 80;
+const int tankfrontlimit = 500; //WAS 500
 const int rotlowlimit = rotmid - 150;
 const int rothighlimit = rotmid + 150;
 
@@ -85,11 +83,11 @@ float error_act_r = 0;
 float error_prev = 0;
 float error_prev_r = 0;
 
-int tankLevel = A0;
-int linPos = A1;
+int tankLevel = A8;
+int linPos = A9;
 //int linFrontLimit = 140;
 //int linBackLimit = 890;
-int rotPos = A7;
+int rotPos = A10;
 
 char *help = "Commands: \n\tparams will show the current parameters and acceptable ranges \n\treset will center linear mass and water tank (for trimming)\n\tupdate [-rothighlimit|-rotlowlimit|-linfrontlimit|-linbacklimit|-tankhighlimit|-tanklowlimit|-linpos|-rotpos\n\t\t-tankpos|-linrate|-rotrate|-destime|-risetime|-tankmid|-linmid|-rotmid|-allowedWorkTime -linNoseUpTarget\n\t\t -linNoseDownTarget -linkp -linki -linkd -rateScale -rollkp -rollLimit] [newValue]\n\tcurrentpos shows current position of actuators\n\tstart starts glide cycle\n\tstop stops glide cycle\n\tlinear toggles linear PID controller on/off\n\trotary toggle toggles rotary controller on/off with default target of 0 degrees\n\trotary turn X rolls to X degrees\n\tfliproll flips the IMU roll angle\nIf the rotary motor acts weird during reset (goes to limit) keep calling reset until it centers...it should eventually center";
 
@@ -100,7 +98,7 @@ void setup()
   Serial.begin(9600);
   Serial.setTimeout(10);
 //  Serial.println("\n```````````````````````````````````````````````````````````````````````````````\n   @@@@@'     @@@@        @@@@@@         ,@@@@@@`              @'@+,``:@,      \n   @@@@@@     @@@@       `@@@@@@        @@@@@@@@.            `@@@        @     \n   @@@@@@#    @@@@       @@@@@@@+      @@@@@@@@@:          `@             #    \n   @@@@@@@    @@@@      `@@@@@@@@      @@@@@:`,#+         #`              ,    \n   @@@@@@@@   @@@@      @@@@`@@@@      @@@@'            .+                 .   \n   @@@@@@@@`  @@@@     .@@@@ '@@@#     @@@@@`          #`                  :   \n   @@@@@@@@@  @@@@     @@@@.  @@@@      @@@@@:        @                    ,   \n   @@@@ @@@@. @@@@    ,@@@@,,,@@@@.      @@@@@#      @                     `   \n  `@@@# #@@@@ @@@#    @@@@@@@@@@@@@       @@@@@#                  ```     :    \n  .@@@#  @@@@'@@@+   ;@@@@@@@@@@@@@        @@@@@:,      ',,,   ;,,,,,,.   @    \n  ,@@@'  :@@@@@@@;   @@@@@@@@@@@@@@;        @@@@#.     `,,,,,  ;,,++,,,   .    \n  ;@@@;   @@@@@@@:  +@@@@      @@@@@  @@.  :@@@@#.     ;,,+,,  ;,, `,,.  #     \n  '@@@;   `@@@@@@,  @@@@@      ,@@@@  '@@@@@@@@@,`    `,,`',,  ',,,,,:   .     \n  #@@@:    @@@@@@. #@@@@        @@@@# :@@@@@@@@+,`    :,,,,,,, +,,++,,, @      \n  @@@@:     @@@@@. @@@@@        @@@@@ .@@@@@@@',,`   .,,'++',, +,,  ,,,        \n                                              +,,,,,,:,,   +,,`+,,,,,,`        \n                                              +''''';''`   :''`+'''''.         \n                                                                               \nNonlinear  and      Autonomous        Systems          Laboratory              \n");
-  Serial.println("Version 5.21.2015");
+  Serial.println("Version 5.29.2015");
   //Serial.println("RRRRRRRRRRRRRRRRR        OOOOOOOOO     UUUUUUUU     UUUUUUUU       GGGGGGGGGGGGGHHHHHHHHH     HHHHHHHHHIIIIIIIIIIEEEEEEEEEEEEEEEEEEEEEE            VVVVVVVV           VVVVVVVV 222222222222222   \nR::::::::::::::::R     OO:::::::::OO   U::::::U     U::::::U    GGG::::::::::::GH:::::::H     H:::::::HI::::::::IE::::::::::::::::::::E            V::::::V           V::::::V2:::::::::::::::22 \nR::::::RRRRRR:::::R  OO:::::::::::::OO U::::::U     U::::::U  GG:::::::::::::::GH:::::::H     H:::::::HI::::::::IE::::::::::::::::::::E            V::::::V           V::::::V2::::::222222:::::2 \nRR:::::R     R:::::RO:::::::OOO:::::::OUU:::::U     U:::::UU G:::::GGGGGGGG::::GHH::::::H     H::::::HHII::::::IIEE::::::EEEEEEEEE::::E            V::::::V           V::::::V2222222     2:::::2 \n  R::::R     R:::::RO::::::O   O::::::O U:::::U     U:::::U G:::::G       GGGGGG  H:::::H     H:::::H    I::::I    E:::::E       EEEEEE             V:::::V           V:::::V             2:::::2 \n  R::::R     R:::::RO:::::O     O:::::O U:::::D     D:::::UG:::::G                H:::::H     H:::::H    I::::I    E:::::E                           V:::::V         V:::::V              2:::::2 \n  R::::RRRRRR:::::R O:::::O     O:::::O U:::::D     D:::::UG:::::G                H::::::HHHHH::::::H    I::::I    E::::::EEEEEEEEEE                  V:::::V       V:::::V            2222::::2  \n  R:::::::::::::RR  O:::::O     O:::::O U:::::D     D:::::UG:::::G    GGGGGGGGGG  H:::::::::::::::::H    I::::I    E:::::::::::::::E                   V:::::V     V:::::V        22222::::::22   \n  R::::RRRRRR:::::R O:::::O     O:::::O U:::::D     D:::::UG:::::G    G::::::::G  H:::::::::::::::::H    I::::I    E:::::::::::::::E                    V:::::V   V:::::V       22::::::::222     \n  R::::R     R:::::RO:::::O     O:::::O U:::::D     D:::::UG:::::G    GGGGG::::G  H::::::HHHHH::::::H    I::::I    E::::::EEEEEEEEEE                     V:::::V V:::::V       2:::::22222        \n  R::::R     R:::::RO:::::O     O:::::O U:::::D     D:::::UG:::::G        G::::G  H:::::H     H:::::H    I::::I    E:::::E                                V:::::V:::::V       2:::::2             \n  R::::R     R:::::RO::::::O   O::::::O U::::::U   U::::::U G:::::G       G::::G  H:::::H     H:::::H    I::::I    E:::::E       EEEEEE                    V:::::::::V        2:::::2             \nRR:::::R     R:::::RO:::::::OOO:::::::O U:::::::UUU:::::::U  G:::::GGGGGGGG::::GHH::::::H     H::::::HHII::::::IIEE::::::EEEEEEEE:::::E ,,,,,,              V:::::::V         2:::::2       222222\nR::::::R     R:::::R OO:::::::::::::OO   UU:::::::::::::UU    GG:::::::::::::::GH:::::::H     H:::::::HI::::::::IE::::::::::::::::::::E ,::::,               V:::::V          2::::::2222222:::::2\nR::::::R     R:::::R   OO:::::::::OO       UU:::::::::UU        GGG::::::GGG:::GH:::::::H     H:::::::HI::::::::IE::::::::::::::::::::E ,::::,                V:::V           2::::::::::::::::::2\nRRRRRRRR     RRRRRRR     OOOOOOOOO           UUUUUUUUU             GGGGGG   GGGGHHHHHHHHH     HHHHHHHHHIIIIIIIIIIEEEEEEEEEEEEEEEEEEEEEE ,:::,,                 VVV            22222222222222222222\n                                                                                                                                       ,:::,\n                                                                                                                                                                                           ,,,,   \n");
   Serial.println(help);
   delay(1000); //Wait for all the printing
@@ -412,6 +410,10 @@ void gliderStateMachine(int cmd) {
 //    Serial.println(um7.roll);
 //    Serial.print("Rotary position: ");
 //    Serial.println(getFiltAnalog(rotPos));
+
+//digitalWrite(pumpOn, HIGH);
+//digitalWrite(pumpDir, LOW); // WAS HIGH
+
     if(RotaryControlOn) {
       param.rotRate = rollController(param.rollTarget);
       analogWrite(motBPWM, param.rotRate);
@@ -446,7 +448,6 @@ void gliderStateMachine(int cmd) {
         if(abs(getFiltAnalog(tankLevel)-param.tankBackLimit) < 50) {
 //        if(getFiltAnalog(tankLevel) > (param.tankBackLimit - 35)) {
           digitalWrite(pumpOn, LOW);
-          digitalWrite(pwrOn, LOW);
           pumpDone = 1;
         }
         
@@ -505,7 +506,6 @@ void gliderStateMachine(int cmd) {
       case ME_GLIDE_DOWN:
           if(entry) {
             pumpOff();
-            digitalWrite(pwrOn,LOW);
             t0 = millis();
             entry = 0;
           }
@@ -567,7 +567,6 @@ void gliderStateMachine(int cmd) {
         //turn off pump when it's time
         if(abs(getFiltAnalog(tankLevel)-param.tankFrontLimit) < 20) {
           digitalWrite(pumpOn, LOW);
-          digitalWrite(pwrOn, LOW);
           pumpDone = 1;
         }
         
@@ -626,7 +625,6 @@ void gliderStateMachine(int cmd) {
         if(entry) {
           t0 = millis();
           pumpOff();
-          digitalWrite(pwrOn,LOW);
           entry = 0;
         }
         
@@ -664,7 +662,6 @@ void gliderStateMachine(int cmd) {
         
       case ME_PAUSE:
         digitalWrite(pumpOn, LOW);
-        digitalWrite(pwrOn, LOW);
         analogWrite(motAPWM, 0);
         analogWrite(motBPWM, 0);
         digitalWrite(motStdby, LOW);
@@ -683,11 +680,7 @@ void gliderStateMachine(int cmd) {
 
     pinMode(pumpOn, OUTPUT);
     pinMode(pumpDir, OUTPUT);
-    pinMode(suicide, OUTPUT);
-    pinMode(pwrOn, OUTPUT);
 
-    digitalWrite(suicide, LOW);
-    delay(10);
     digitalWrite(pumpOn, LOW);
     delay(10);
     digitalWrite(pumpDir, LOW);
@@ -715,7 +708,6 @@ void gliderStateMachine(int cmd) {
       while(abs(getFiltAnalog(tankLevel)-param.tankMid) > 20) {
       }
       digitalWrite(pumpOn, LOW);
-      digitalWrite(pwrOn, LOW);
       Serial.println("Tank Reset");
 
     moveLinMass(param.linMid, param.linRate);
@@ -928,7 +920,6 @@ void moveRotMass(int dest, int rate) {
   return;
 }
 void moveWater(int dest) {
-  digitalWrite(pwrOn, HIGH);
   delay(100);
   int currentPos = getFiltAnalog(tankLevel);
   if(currentPos == 0) {
@@ -958,10 +949,10 @@ void moveWater(int dest) {
   }
 
   if(currentPos > dest) {
-    digitalWrite(pumpDir, HIGH);
+    digitalWrite(pumpDir, HIGH); //WAS HIGH
   }
   else {
-    digitalWrite(pumpDir, LOW);
+    digitalWrite(pumpDir, LOW); //WAS LOW
   }
   digitalWrite(pumpOn, HIGH);
   return;
@@ -971,7 +962,6 @@ void pumpOff() {
 }
 
 void moveWater2(int dest) {
-  digitalWrite(pwrOn, HIGH);
   delay(100);
   int currentPos = getFiltAnalog(tankLevel);
   if(currentPos == 0) {
@@ -996,17 +986,16 @@ void moveWater2(int dest) {
   }
 
   if(currentPos > dest) {
-    digitalWrite(pumpDir, HIGH);
+    digitalWrite(pumpDir, HIGH); // WAS HIGH
   }
   else {
-    digitalWrite(pumpDir, LOW);
+    digitalWrite(pumpDir, LOW); //WAS LOW
   }
    
    while(abs(getFiltAnalog(tankLevel)-dest) > 5) {
       digitalWrite(pumpOn, HIGH);
     }
   digitalWrite(pumpOn, LOW);  
-  digitalWrite(pwrOn, LOW);
   return;
 }
 
