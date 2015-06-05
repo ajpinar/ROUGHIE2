@@ -1,0 +1,24 @@
+MAIN BOARD (CntrlBoard)
+
+1. Change 3 position headers (2mm) to locking type. These headers are P7 thru P11 and used for analog inputs with 5V and GND connections.
+
+2. Add cutouts for Arduino’s USB and power input connectors.
+
+3. Add cutout for Arduino’s ICSP pins.
+
+4. Move traces for the DC motor connectors (P4 & P5) to the bottom.
+
+5. Add XBee capability.
+
+6. Move LEDs near switch.
+
+7. Add SD card capability.
+
+8. Add input current sensor.
+
+9. Labels near LEDs.
+
+———————————————————————————————————
+PUMP CONTROL BOARD (PumpSolBoardV2)
+
+1. None!
