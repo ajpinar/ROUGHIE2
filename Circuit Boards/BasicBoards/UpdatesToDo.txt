@@ -18,6 +18,8 @@ MAIN BOARD (CntrlBoard)
 
 9. Labels near LEDs.
 
+10. Add Arduino LEDs.
+
 ———————————————————————————————————
 PUMP CONTROL BOARD (PumpSolBoardV2)
 
