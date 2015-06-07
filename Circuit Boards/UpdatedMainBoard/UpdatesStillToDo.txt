@@ -1,8 +1,8 @@
 MAIN BOARD (CntrlBoard)
 
-1. Change 3 position headers (2mm) to locking type. These headers are P7 thru P11 and used for analog inputs with 5V and GND connections.
+1. DONE
 
-2. Add cutouts for Arduino’s USB and power input connectors.
+2. DONE
 
 3. DONE
 
@@ -14,7 +14,7 @@ MAIN BOARD (CntrlBoard)
 
 7. Add SD card capability.
 
-8. Add input current sensor.
+8. DONE
 
 9. DONE
 

@@ -7584,15 +7584,6 @@ PCMCIA-CompactFlash Connectors&lt;p&gt;
 Zero Insertion Force Socked&lt;p&gt;
 &lt;author&gt;Created by librarian@cadsoft.de&lt;/author&gt;</description>
 <packages>
-<package name="3PIN_2MMPITCH">
-<pad name="P$1" x="-1.99898125" y="0" drill="0.8"/>
-<pad name="P$2" x="0" y="0" drill="0.8"/>
-<pad name="P$3" x="1.99898125" y="0" drill="0.8"/>
-<wire x1="-2.9972" y1="0.999490625" x2="2.9972" y2="0.999490625" width="0.127" layer="21"/>
-<wire x1="2.9972" y1="0.999490625" x2="2.9972" y2="-0.999490625" width="0.127" layer="21"/>
-<wire x1="2.9972" y1="-0.999490625" x2="-2.9972" y2="-0.999490625" width="0.127" layer="21"/>
-<wire x1="-2.9972" y1="-0.999490625" x2="-2.9972" y2="0.999490625" width="0.127" layer="21"/>
-</package>
 <package name="DF3A-2P-2DSA">
 <wire x1="0" y1="5.0038" x2="0" y2="0" width="0.127" layer="21"/>
 <wire x1="0" y1="0" x2="5.9999875" y2="0" width="0.127" layer="21"/>
@@ -7600,6 +7591,15 @@ Zero Insertion Force Socked&lt;p&gt;
 <wire x1="5.9999875" y1="5.0038" x2="0" y2="5.0038" width="0.127" layer="21"/>
 <pad name="P$1" x="2" y="1.000759375" drill="0.8"/>
 <pad name="P$2" x="3.999990625" y="1.000759375" drill="0.8"/>
+</package>
+<package name="3PIN_2MMLOCKING">
+<pad name="P$1" x="-1.999996875" y="0" drill="0.8"/>
+<pad name="P$2" x="0" y="0" drill="0.8"/>
+<pad name="P$3" x="1.999996875" y="0" drill="0.8"/>
+<wire x1="-3.999990625" y1="-0.999996875" x2="-3.999990625" y2="3.999990625" width="0.127" layer="21"/>
+<wire x1="-3.999990625" y1="3.999990625" x2="3.999990625" y2="3.999990625" width="0.127" layer="21"/>
+<wire x1="3.999990625" y1="3.999990625" x2="3.999990625" y2="-0.9992375" width="0.127" layer="21"/>
+<wire x1="3.999990625" y1="-0.9992375" x2="-3.999990625" y2="-0.999996875" width="0.127" layer="21"/>
 </package>
 </packages>
 <symbols>
@@ -7610,25 +7610,6 @@ Zero Insertion Force Socked&lt;p&gt;
 </symbol>
 </symbols>
 <devicesets>
-<deviceset name="3PIN2MMPITCH">
-<gates>
-<gate name="G$1" symbol="PIN" x="2.54" y="17.78"/>
-<gate name="G$2" symbol="PIN" x="2.54" y="15.24"/>
-<gate name="G$3" symbol="PIN" x="2.54" y="12.7"/>
-</gates>
-<devices>
-<device name="" package="3PIN_2MMPITCH">
-<connects>
-<connect gate="G$1" pin="KL" pad="P$1"/>
-<connect gate="G$2" pin="KL" pad="P$2"/>
-<connect gate="G$3" pin="KL" pad="P$3"/>
-</connects>
-<technologies>
-<technology name=""/>
-</technologies>
-</device>
-</devices>
-</deviceset>
 <deviceset name="DF3A-2P-2DSA">
 <gates>
 <gate name="G$1" symbol="PIN" x="2.54" y="12.7"/>
@@ -7639,6 +7620,25 @@ Zero Insertion Force Socked&lt;p&gt;
 <connects>
 <connect gate="G$1" pin="KL" pad="P$1"/>
 <connect gate="G$2" pin="KL" pad="P$2"/>
+</connects>
+<technologies>
+<technology name=""/>
+</technologies>
+</device>
+</devices>
+</deviceset>
+<deviceset name="3MM2MMLOCKING">
+<gates>
+<gate name="G$1" symbol="PIN" x="-5.08" y="5.08"/>
+<gate name="G$2" symbol="PIN" x="-5.08" y="2.54"/>
+<gate name="G$3" symbol="PIN" x="-5.08" y="0"/>
+</gates>
+<devices>
+<device name="" package="3PIN_2MMLOCKING">
+<connects>
+<connect gate="G$1" pin="KL" pad="P$1"/>
+<connect gate="G$2" pin="KL" pad="P$2"/>
+<connect gate="G$3" pin="KL" pad="P$3"/>
 </connects>
 <technologies>
 <technology name=""/>
@@ -7838,11 +7838,6 @@ Zero Insertion Force Socked&lt;p&gt;
 <part name="R8" library="resistor" deviceset="R-US_" device="R1210" value="1K8"/>
 <part name="P+6" library="supply1" deviceset="+5V" device=""/>
 <part name="GND9" library="supply1" deviceset="GND" device=""/>
-<part name="P7" library="con-3m" deviceset="3PIN2MMPITCH" device=""/>
-<part name="P8" library="con-3m" deviceset="3PIN2MMPITCH" device=""/>
-<part name="P9" library="con-3m" deviceset="3PIN2MMPITCH" device=""/>
-<part name="P10" library="con-3m" deviceset="3PIN2MMPITCH" device=""/>
-<part name="P11" library="con-3m" deviceset="3PIN2MMPITCH" device=""/>
 <part name="P+7" library="supply1" deviceset="+5V" device=""/>
 <part name="GND10" library="supply1" deviceset="GND" device=""/>
 <part name="PS1" library="dc-dc-converter" deviceset="KHHD006A0A41Z" device=""/>
@@ -7884,6 +7879,12 @@ Zero Insertion Force Socked&lt;p&gt;
 <part name="P18" library="con-3m" deviceset="DF3A-2P-2DSA" device=""/>
 <part name="P19" library="con-3m" deviceset="DF3A-2P-2DSA" device=""/>
 <part name="P20" library="con-3m" deviceset="DF3A-2P-2DSA" device=""/>
+<part name="P21" library="con-3m" deviceset="DF3A-2P-2DSA" device=""/>
+<part name="P7" library="con-3m" deviceset="3MM2MMLOCKING" device=""/>
+<part name="P8" library="con-3m" deviceset="3MM2MMLOCKING" device=""/>
+<part name="P11" library="con-3m" deviceset="3MM2MMLOCKING" device=""/>
+<part name="P10" library="con-3m" deviceset="3MM2MMLOCKING" device=""/>
+<part name="P9" library="con-3m" deviceset="3MM2MMLOCKING" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -7958,21 +7959,6 @@ SERIAL</text>
 <instance part="R8" gate="G$1" x="-124.46" y="58.42" rot="R90"/>
 <instance part="P+6" gate="1" x="17.78" y="30.48"/>
 <instance part="GND9" gate="1" x="17.78" y="15.24"/>
-<instance part="P7" gate="G$1" x="-134.62" y="10.16"/>
-<instance part="P7" gate="G$2" x="-134.62" y="7.62"/>
-<instance part="P7" gate="G$3" x="-134.62" y="5.08"/>
-<instance part="P8" gate="G$1" x="-134.62" y="-5.08"/>
-<instance part="P8" gate="G$2" x="-134.62" y="-7.62"/>
-<instance part="P8" gate="G$3" x="-134.62" y="-10.16"/>
-<instance part="P9" gate="G$1" x="-134.62" y="-17.78"/>
-<instance part="P9" gate="G$2" x="-134.62" y="-20.32"/>
-<instance part="P9" gate="G$3" x="-134.62" y="-22.86"/>
-<instance part="P10" gate="G$1" x="-134.62" y="-30.48"/>
-<instance part="P10" gate="G$2" x="-134.62" y="-33.02"/>
-<instance part="P10" gate="G$3" x="-134.62" y="-35.56"/>
-<instance part="P11" gate="G$1" x="-134.62" y="-43.18"/>
-<instance part="P11" gate="G$2" x="-134.62" y="-45.72"/>
-<instance part="P11" gate="G$3" x="-134.62" y="-48.26"/>
 <instance part="P+7" gate="1" x="-121.92" y="20.32"/>
 <instance part="GND10" gate="1" x="-124.46" y="-55.88"/>
 <instance part="PS1" gate="G$1" x="93.98" y="-55.88"/>
@@ -8026,6 +8012,23 @@ SERIAL</text>
 <instance part="P19" gate="G$2" x="193.04" y="68.58"/>
 <instance part="P20" gate="G$1" x="193.04" y="63.5"/>
 <instance part="P20" gate="G$2" x="193.04" y="60.96"/>
+<instance part="P21" gate="G$1" x="-2.54" y="-20.32" rot="R180"/>
+<instance part="P21" gate="G$2" x="-2.54" y="-22.86" rot="R180"/>
+<instance part="P7" gate="G$1" x="-134.62" y="10.16"/>
+<instance part="P7" gate="G$2" x="-134.62" y="7.62"/>
+<instance part="P7" gate="G$3" x="-134.62" y="5.08"/>
+<instance part="P8" gate="G$1" x="-134.62" y="-5.08"/>
+<instance part="P8" gate="G$2" x="-134.62" y="-7.62"/>
+<instance part="P8" gate="G$3" x="-134.62" y="-10.16"/>
+<instance part="P11" gate="G$1" x="-134.62" y="-43.18"/>
+<instance part="P11" gate="G$2" x="-134.62" y="-45.72"/>
+<instance part="P11" gate="G$3" x="-134.62" y="-48.26"/>
+<instance part="P10" gate="G$1" x="-134.62" y="-30.48"/>
+<instance part="P10" gate="G$2" x="-134.62" y="-33.02"/>
+<instance part="P10" gate="G$3" x="-134.62" y="-35.56"/>
+<instance part="P9" gate="G$1" x="-134.62" y="-17.78"/>
+<instance part="P9" gate="G$2" x="-134.62" y="-20.32"/>
+<instance part="P9" gate="G$3" x="-134.62" y="-22.86"/>
 </instances>
 <busses>
 </busses>
@@ -8088,24 +8091,24 @@ SERIAL</text>
 <segment>
 <pinref part="GND10" gate="1" pin="GND"/>
 <wire x1="-124.46" y1="-45.72" x2="-124.46" y2="-53.34" width="0.1524" layer="91"/>
-<pinref part="P11" gate="G$2" pin="KL"/>
 <wire x1="-129.54" y1="-45.72" x2="-124.46" y2="-45.72" width="0.1524" layer="91"/>
-<pinref part="P7" gate="G$2" pin="KL"/>
 <wire x1="-129.54" y1="7.62" x2="-124.46" y2="7.62" width="0.1524" layer="91"/>
 <wire x1="-124.46" y1="7.62" x2="-124.46" y2="-7.62" width="0.1524" layer="91"/>
 <junction x="-124.46" y="-45.72"/>
-<pinref part="P10" gate="G$2" pin="KL"/>
 <wire x1="-124.46" y1="-7.62" x2="-124.46" y2="-20.32" width="0.1524" layer="91"/>
 <wire x1="-124.46" y1="-20.32" x2="-124.46" y2="-33.02" width="0.1524" layer="91"/>
 <wire x1="-124.46" y1="-33.02" x2="-124.46" y2="-45.72" width="0.1524" layer="91"/>
 <wire x1="-129.54" y1="-33.02" x2="-124.46" y2="-33.02" width="0.1524" layer="91"/>
 <junction x="-124.46" y="-33.02"/>
-<pinref part="P9" gate="G$2" pin="KL"/>
 <wire x1="-129.54" y1="-20.32" x2="-124.46" y2="-20.32" width="0.1524" layer="91"/>
 <junction x="-124.46" y="-20.32"/>
-<pinref part="P8" gate="G$2" pin="KL"/>
 <wire x1="-129.54" y1="-7.62" x2="-124.46" y2="-7.62" width="0.1524" layer="91"/>
 <junction x="-124.46" y="-7.62"/>
+<pinref part="P7" gate="G$2" pin="KL"/>
+<pinref part="P8" gate="G$2" pin="KL"/>
+<pinref part="P9" gate="G$2" pin="KL"/>
+<pinref part="P10" gate="G$2" pin="KL"/>
+<pinref part="P11" gate="G$2" pin="KL"/>
 </segment>
 <segment>
 <pinref part="GND12" gate="1" pin="GND"/>
@@ -8355,8 +8358,9 @@ SERIAL</text>
 <segment>
 <pinref part="LED2" gate="G$1" pin="A"/>
 <wire x1="-38.1" y1="-22.86" x2="-38.1" y2="-20.32" width="0.1524" layer="91"/>
-<wire x1="-38.1" y1="-20.32" x2="10.16" y2="-20.32" width="0.1524" layer="91"/>
-<label x="-12.7" y="-20.32" size="1.778" layer="95"/>
+<wire x1="-38.1" y1="-20.32" x2="-7.62" y2="-20.32" width="0.1524" layer="91"/>
+<label x="-27.94" y="-20.32" size="1.778" layer="95"/>
+<pinref part="P21" gate="G$1" pin="KL"/>
 </segment>
 </net>
 <net name="N$11" class="0">
@@ -8403,25 +8407,25 @@ SERIAL</text>
 </segment>
 <segment>
 <pinref part="P+7" gate="1" pin="+5V"/>
-<pinref part="P11" gate="G$3" pin="KL"/>
 <wire x1="-129.54" y1="-48.26" x2="-121.92" y2="-48.26" width="0.1524" layer="91"/>
 <wire x1="-121.92" y1="-48.26" x2="-121.92" y2="-35.56" width="0.1524" layer="91"/>
-<pinref part="P7" gate="G$3" pin="KL"/>
 <wire x1="-121.92" y1="-35.56" x2="-121.92" y2="-22.86" width="0.1524" layer="91"/>
 <wire x1="-121.92" y1="-22.86" x2="-121.92" y2="-10.16" width="0.1524" layer="91"/>
 <wire x1="-121.92" y1="-10.16" x2="-121.92" y2="5.08" width="0.1524" layer="91"/>
 <wire x1="-121.92" y1="5.08" x2="-121.92" y2="17.78" width="0.1524" layer="91"/>
 <wire x1="-129.54" y1="5.08" x2="-121.92" y2="5.08" width="0.1524" layer="91"/>
 <junction x="-121.92" y="5.08"/>
-<pinref part="P8" gate="G$3" pin="KL"/>
 <wire x1="-129.54" y1="-10.16" x2="-121.92" y2="-10.16" width="0.1524" layer="91"/>
 <junction x="-121.92" y="-10.16"/>
-<pinref part="P9" gate="G$3" pin="KL"/>
 <wire x1="-129.54" y1="-22.86" x2="-121.92" y2="-22.86" width="0.1524" layer="91"/>
 <junction x="-121.92" y="-22.86"/>
-<pinref part="P10" gate="G$3" pin="KL"/>
 <wire x1="-129.54" y1="-35.56" x2="-121.92" y2="-35.56" width="0.1524" layer="91"/>
 <junction x="-121.92" y="-35.56"/>
+<pinref part="P7" gate="G$3" pin="KL"/>
+<pinref part="P8" gate="G$3" pin="KL"/>
+<pinref part="P9" gate="G$3" pin="KL"/>
+<pinref part="P10" gate="G$3" pin="KL"/>
+<pinref part="P11" gate="G$3" pin="KL"/>
 </segment>
 <segment>
 <pinref part="PS1" gate="G$1" pin="+SENSE"/>
@@ -8529,9 +8533,9 @@ SERIAL</text>
 <label x="167.64" y="-27.94" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="P11" gate="G$1" pin="KL"/>
 <wire x1="-129.54" y1="-43.18" x2="-96.52" y2="-43.18" width="0.1524" layer="91"/>
 <label x="-111.76" y="-43.18" size="1.778" layer="95"/>
+<pinref part="P11" gate="G$1" pin="KL"/>
 </segment>
 </net>
 <net name="N$14" class="0">
@@ -8716,9 +8720,9 @@ SERIAL</text>
 <label x="248.92" y="12.7" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="P19" gate="G$1" pin="KL"/>
-<wire x1="198.12" y1="71.12" x2="220.98" y2="71.12" width="0.1524" layer="91"/>
-<label x="215.9" y="71.12" size="1.778" layer="95"/>
+<pinref part="P19" gate="G$2" pin="KL"/>
+<wire x1="198.12" y1="68.58" x2="220.98" y2="68.58" width="0.1524" layer="91"/>
+<label x="215.9" y="68.58" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="RX2" class="0">
@@ -8728,9 +8732,9 @@ SERIAL</text>
 <label x="248.92" y="10.16" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="P19" gate="G$2" pin="KL"/>
-<wire x1="198.12" y1="68.58" x2="220.98" y2="68.58" width="0.1524" layer="91"/>
-<label x="215.9" y="68.58" size="1.778" layer="95"/>
+<pinref part="P19" gate="G$1" pin="KL"/>
+<wire x1="198.12" y1="71.12" x2="220.98" y2="71.12" width="0.1524" layer="91"/>
+<label x="215.9" y="71.12" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="TX1" class="0">
@@ -8740,9 +8744,9 @@ SERIAL</text>
 <label x="248.92" y="7.62" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="P18" gate="G$1" pin="KL"/>
-<wire x1="198.12" y1="78.74" x2="220.98" y2="78.74" width="0.1524" layer="91"/>
-<label x="215.9" y="78.74" size="1.778" layer="95"/>
+<pinref part="P18" gate="G$2" pin="KL"/>
+<wire x1="198.12" y1="76.2" x2="220.98" y2="76.2" width="0.1524" layer="91"/>
+<label x="215.9" y="76.2" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="RX1" class="0">
@@ -8752,9 +8756,9 @@ SERIAL</text>
 <label x="248.92" y="5.08" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="P18" gate="G$2" pin="KL"/>
-<wire x1="198.12" y1="76.2" x2="220.98" y2="76.2" width="0.1524" layer="91"/>
-<label x="215.9" y="76.2" size="1.778" layer="95"/>
+<pinref part="P18" gate="G$1" pin="KL"/>
+<wire x1="198.12" y1="78.74" x2="220.98" y2="78.74" width="0.1524" layer="91"/>
+<label x="215.9" y="78.74" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="SDA" class="0">
