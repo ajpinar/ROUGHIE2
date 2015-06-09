@@ -20,6 +20,8 @@ MAIN BOARD (CntrlBoard)
 
 10. NOT NECESSARY
 
+11. Add voltage readback capability! (R-divider should be enough)
+
 ———————————————————————————————————
 PUMP CONTROL BOARD (PumpSolBoardV2)
 
