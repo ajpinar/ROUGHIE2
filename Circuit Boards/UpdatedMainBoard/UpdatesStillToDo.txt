@@ -20,7 +20,11 @@ MAIN BOARD (CntrlBoard)
 
 10. NOT NECESSARY
 
-11. Add voltage readback capability! (R-divider should be enough)
+11. DONE
+
+12. Add GPS capability
+
+13. Add biosensor capability (RS232, 7-15VDC)
 
 ———————————————————————————————————
 PUMP CONTROL BOARD (PumpSolBoardV2)

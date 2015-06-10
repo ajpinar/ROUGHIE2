@@ -10296,6 +10296,16 @@ Source: http://cds.linear.com/docs/Datasheet/623012fb.pdf</description>
 <part name="P+25" library="supply1" deviceset="VCC" device=""/>
 <part name="GND32" library="supply1" deviceset="GND" device=""/>
 <part name="P+26" library="supply1" deviceset="+5V" device=""/>
+<part name="R15" library="resistor" deviceset="R-US_" device="R1206" value="5K0"/>
+<part name="R16" library="resistor" deviceset="R-US_" device="R1206" value="1K0"/>
+<part name="P+27" library="supply1" deviceset="VCC" device=""/>
+<part name="GND33" library="supply1" deviceset="GND" device=""/>
+<part name="LED5" library="led" deviceset="LED" device="CHIPLED_1206" value="GRN"/>
+<part name="LED6" library="led" deviceset="LED" device="CHIPLED_1206" value="RED"/>
+<part name="P+28" library="supply1" deviceset="+5V" device=""/>
+<part name="P+29" library="supply1" deviceset="+5V" device=""/>
+<part name="R17" library="resistor" deviceset="R-US_" device="R1206" value="1K0"/>
+<part name="R18" library="resistor" deviceset="R-US_" device="R1206" value="1K0"/>
 </parts>
 <sheets>
 <sheet>
@@ -10481,6 +10491,16 @@ SERIAL</text>
 <instance part="P+25" gate="VCC" x="-101.6" y="160.02"/>
 <instance part="GND32" gate="1" x="-101.6" y="132.08"/>
 <instance part="P+26" gate="1" x="-91.44" y="160.02"/>
+<instance part="R15" gate="G$1" x="-83.82" y="73.66" rot="R270"/>
+<instance part="R16" gate="G$1" x="-83.82" y="58.42" rot="R270"/>
+<instance part="P+27" gate="VCC" x="-83.82" y="86.36"/>
+<instance part="GND33" gate="1" x="-83.82" y="45.72"/>
+<instance part="LED5" gate="G$1" x="271.78" y="-35.56"/>
+<instance part="LED6" gate="G$1" x="281.94" y="-35.56"/>
+<instance part="P+28" gate="1" x="271.78" y="-10.16"/>
+<instance part="P+29" gate="1" x="281.94" y="-10.16"/>
+<instance part="R17" gate="G$1" x="271.78" y="-22.86" rot="R270"/>
+<instance part="R18" gate="G$1" x="281.94" y="-22.86" rot="R270"/>
 </instances>
 <busses>
 </busses>
@@ -10722,6 +10742,11 @@ SERIAL</text>
 <wire x1="-101.6" y1="142.24" x2="-101.6" y2="139.7" width="0.1524" layer="91"/>
 <junction x="-101.6" y="139.7"/>
 </segment>
+<segment>
+<pinref part="R16" gate="G$1" pin="2"/>
+<pinref part="GND33" gate="1" pin="GND"/>
+<wire x1="-83.82" y1="53.34" x2="-83.82" y2="48.26" width="0.1524" layer="91"/>
+</segment>
 </net>
 <net name="N$1" class="0">
 <segment>
@@ -10813,6 +10838,11 @@ SERIAL</text>
 <pinref part="P+25" gate="VCC" pin="VCC"/>
 <wire x1="-106.68" y1="152.4" x2="-101.6" y2="152.4" width="0.1524" layer="91"/>
 <wire x1="-101.6" y1="152.4" x2="-101.6" y2="157.48" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="P+27" gate="VCC" pin="VCC"/>
+<pinref part="R15" gate="G$1" pin="1"/>
+<wire x1="-83.82" y1="83.82" x2="-83.82" y2="78.74" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$4" class="0">
@@ -11031,6 +11061,16 @@ SERIAL</text>
 <pinref part="P+26" gate="1" pin="+5V"/>
 <wire x1="-106.68" y1="149.86" x2="-91.44" y2="149.86" width="0.1524" layer="91"/>
 <wire x1="-91.44" y1="149.86" x2="-91.44" y2="157.48" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="P+28" gate="1" pin="+5V"/>
+<pinref part="R17" gate="G$1" pin="1"/>
+<wire x1="271.78" y1="-12.7" x2="271.78" y2="-17.78" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="P+29" gate="1" pin="+5V"/>
+<pinref part="R18" gate="G$1" pin="1"/>
+<wire x1="281.94" y1="-12.7" x2="281.94" y2="-17.78" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$12" class="0">
@@ -11417,6 +11457,52 @@ SERIAL</text>
 <wire x1="-17.78" y1="96.52" x2="-5.08" y2="96.52" width="0.1524" layer="91"/>
 <wire x1="-2.54" y1="96.52" x2="-5.08" y2="96.52" width="0.1524" layer="91"/>
 <junction x="-5.08" y="96.52"/>
+</segment>
+</net>
+<net name="VIN_READBACK" class="0">
+<segment>
+<pinref part="R15" gate="G$1" pin="2"/>
+<pinref part="R16" gate="G$1" pin="1"/>
+<wire x1="-83.82" y1="68.58" x2="-83.82" y2="66.04" width="0.1524" layer="91"/>
+<wire x1="-83.82" y1="66.04" x2="-83.82" y2="63.5" width="0.1524" layer="91"/>
+<wire x1="-83.82" y1="66.04" x2="-68.58" y2="66.04" width="0.1524" layer="91"/>
+<junction x="-83.82" y="66.04"/>
+<label x="-81.28" y="66.04" size="1.778" layer="95"/>
+</segment>
+<segment>
+<pinref part="U1" gate="G$1" pin="A13"/>
+<wire x1="195.58" y1="-30.48" x2="167.64" y2="-30.48" width="0.1524" layer="91"/>
+<label x="167.64" y="-30.48" size="1.778" layer="95"/>
+</segment>
+</net>
+<net name="N$3" class="0">
+<segment>
+<pinref part="LED5" gate="G$1" pin="C"/>
+<wire x1="271.78" y1="-40.64" x2="271.78" y2="-48.26" width="0.1524" layer="91"/>
+<pinref part="U1" gate="G$1" pin="40"/>
+<wire x1="271.78" y1="-48.26" x2="236.22" y2="-48.26" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="N$23" class="0">
+<segment>
+<pinref part="U1" gate="G$1" pin="42"/>
+<pinref part="LED6" gate="G$1" pin="C"/>
+<wire x1="236.22" y1="-53.34" x2="281.94" y2="-53.34" width="0.1524" layer="91"/>
+<wire x1="281.94" y1="-53.34" x2="281.94" y2="-40.64" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="N$28" class="0">
+<segment>
+<pinref part="LED5" gate="G$1" pin="A"/>
+<pinref part="R17" gate="G$1" pin="2"/>
+<wire x1="271.78" y1="-33.02" x2="271.78" y2="-27.94" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="N$29" class="0">
+<segment>
+<pinref part="LED6" gate="G$1" pin="A"/>
+<pinref part="R18" gate="G$1" pin="2"/>
+<wire x1="281.94" y1="-33.02" x2="281.94" y2="-27.94" width="0.1524" layer="91"/>
 </segment>
 </net>
 </nets>
