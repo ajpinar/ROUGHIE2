@@ -8,11 +8,11 @@ MAIN BOARD (CntrlBoard)
 
 4. DONE
 
-5. Add XBee capability.
+5. ON additionalShield.sch
 
 6. DONE
 
-7. Add SD card capability.
+7. ON additionalShield.sch
 
 8. DONE
 
