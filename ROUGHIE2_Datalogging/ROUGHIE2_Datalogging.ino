@@ -99,9 +99,9 @@ int pressureSensorPin = A10;
 //int linBackLimit = 890;
 int rotPos = A12;
 
-bool SDgo = 1;
+bool SDgo = 0;
 
-char *help = "Commands: \n\tparams will show the current parameters and acceptable ranges \n\treset will center linear mass and water tank (for trimming)\n\tupdate [-rothighlimit|-rotlowlimit|-linfrontlimit|-linbacklimit|-tankhighlimit|-tanklowlimit|-linpos|-rotpos\n\t\t-tankpos|-linrate|-rotrate|-destime|-risetime|-tankmid|-linmid|-rotmid|-allowedWorkTime -linNoseUpTarget\n\t\t -linNoseDownTarget -linkp -linki -linkd -rateScale -rollkp -rollLimit] [newValue]\n\tcurrentpos shows current position of actuators\n\tstart starts glide cycle\n\tstop stops glide cycle\n\tlinear toggles linear PID controller on/off\n\trotary toggle toggles rotary controller on/off with default target of 0 degrees\n\trotary turn X rolls to X degrees\n\tfliproll flips the IMU roll angle\nIf the rotary motor acts weird during reset (goes to limit) keep calling reset until it centers...it should eventually center";
+char *help = "Commands: \n\tparams will show the current parameters and acceptable ranges \n\treset will center linear mass and water tank (for trimming)\n\tupdate [-rothighlimit|-rotlowlimit|-linfrontlimit|-linbacklimit|-tankhighlimit|-tanklowlimit|-linpos|-rotpos\n\t\t-tankpos|-linrate|-rotrate|-destime|-risetime|-tankmid|-linmid|-rotmid|-allowedWorkTime -linNoseUpTarget\n\t\t -linNoseDownTarget -linkp -linki -linkd -rateScale -rollkp -rollLimit] [newValue]\n\tcurrentpos shows current position of actuators\n\tstart starts glide cycle\n\tstop stops glide cycle\n\tlinear toggles linear PID controller on/off\n\trotary toggle toggles rotary controller on/off with default target of 0 degrees\n\trotary turn X rolls to X degrees\n\tfliproll flips the IMU roll angle\n\tsdstart opens file and starts datalogging\n\tsdstop <notes> stops datalogging, adds <notes>, and closes file\nIf the rotary motor acts weird during reset (goes to limit) keep calling reset until it centers...it should eventually center";
 
 void setup()
 {
@@ -160,6 +160,7 @@ void setup()
   }
   Serial.println("card initialized.");
   
+  /*
   // create a new file
   char filename[] = "LOGGER00.csv";
   for (uint8_t i = 0; i < 100; i++) {
@@ -187,7 +188,7 @@ void setup()
   
 
   logfile.println("millis,stamp,datetime,Pressure,Pitch,Roll,DrawWire,Rot.Pos,LinMassPos,tp1,tp2,yaw,rolld,pitchd,yawd,north,east,up");    
-  
+  */
 }
 
 void loop()
@@ -332,6 +333,45 @@ void loop()
     else if(strcmp(arg[0], "stop") == 0) {
       gliderStateMachine(GC_STOP);
     }
+    else if(strcmp(arg[0], "sdstart") == 0) {
+      char filename[] = "LOGGER00.csv";
+      for (uint8_t i = 0; i < 100; i++) {
+        filename[6] = i/10 + '0';
+        filename[7] = i%10 + '0';
+        if (! SD.exists(filename)) {
+          // only open a new file if it doesn't exist
+          logfile = SD.open(filename, FILE_WRITE);
+          
+          if (! logfile) {
+            error("couldnt create file");
+          }
+  
+          Serial.print("Logging to: ");
+          Serial.println(filename);
+      
+          // connect to RTC
+          Wire.begin();  
+          if (!rtc.begin()) {
+            logfile.println("RTC failed");
+          }
+      
+          logfile.println("millis,stamp,datetime,Pressure,Pitch,Roll,DrawWire,Rot.Pos,LinMassPos,tp1,tp2,yaw,rolld,pitchd,yawd,north,east,up");    
+          SDgo = 1;
+
+          break;  // leave the loop!
+        }
+      }
+
+    }
+    else if(strcmp(arg[0], "sdstop") == 0) {
+      logfile.println("");
+      logfile.println("");
+      logfile.print("Notes,");
+      logfile.println(buff);
+      SDgo = 0;
+      logfile.close();
+      Serial.println("Logging stopped and log file was closed");
+    } 
     else if(strcmp(arg[0], "update") == 0) {  // update parameter
       if(strcmp(arg[1], "-linpos") == 0) {
         param.linPos = atoi(arg[2]);
