@@ -11304,16 +11304,18 @@ Very common IC. This is generically called 'MAX232', but works with the 3V equiv
 <wire x1="314.96" y1="88.9" x2="320.04" y2="88.9" width="0.1524" layer="91"/>
 </segment>
 </net>
-<net name="N$9" class="0">
+<net name="RX_1" class="0">
 <segment>
 <pinref part="U5" gate="G$1" pin="T1IN"/>
 <wire x1="91.44" y1="195.58" x2="55.88" y2="195.58" width="0.1524" layer="91"/>
+<label x="55.88" y="195.58" size="1.778" layer="95"/>
 </segment>
 </net>
-<net name="N$10" class="0">
+<net name="TX_1" class="0">
 <segment>
 <pinref part="U5" gate="G$1" pin="R1OUT"/>
 <wire x1="91.44" y1="190.5" x2="55.88" y2="190.5" width="0.1524" layer="91"/>
+<label x="55.88" y="190.5" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="PRXD_1" class="0">
@@ -11382,16 +11384,18 @@ Very common IC. This is generically called 'MAX232', but works with the 3V equiv
 <wire x1="134.62" y1="213.36" x2="127" y2="213.36" width="0.1524" layer="91"/>
 </segment>
 </net>
-<net name="N$19" class="0">
+<net name="RX_2" class="0">
 <segment>
 <pinref part="U5" gate="G$1" pin="T2IN"/>
 <wire x1="91.44" y1="193.04" x2="55.88" y2="193.04" width="0.1524" layer="91"/>
+<label x="55.88" y="193.04" size="1.778" layer="95"/>
 </segment>
 </net>
-<net name="N$20" class="0">
+<net name="TX_2" class="0">
 <segment>
 <pinref part="U5" gate="G$1" pin="R2OUT"/>
 <wire x1="91.44" y1="187.96" x2="55.88" y2="187.96" width="0.1524" layer="91"/>
+<label x="55.88" y="187.96" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="PRXD_2" class="0">

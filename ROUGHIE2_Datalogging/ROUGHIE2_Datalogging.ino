@@ -155,7 +155,7 @@ void setup()
   
   // see if the card is present and can be initialized:
   if (!SD.begin(10, 11, 12, 13)) {
-  //  if (!SD.begin(53, 51, 49, 47)) {
+  //if (!SD.begin(53, 51, 49, 47)) {
     error("Card failed, or not present");
   }
   Serial.println("card initialized.");

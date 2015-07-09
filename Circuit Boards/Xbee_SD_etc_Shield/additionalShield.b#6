@@ -2669,7 +2669,9 @@ design rules under a new name.</description>
 <signal name="N$38">
 <contactref element="R4" pad="1"/>
 <contactref element="LED1" pad="A"/>
-<wire x1="37.31" y1="24.13" x2="45.568" y2="24.13" width="0" layer="19" extent="1-16"/>
+<wire x1="45.568" y1="24.13" x2="39.37" y2="24.13" width="0.254" layer="16"/>
+<via x="39.37" y="24.13" extent="1-16" drill="0.7" shape="square"/>
+<wire x1="39.37" y1="24.13" x2="37.31" y2="24.13" width="0.254" layer="1"/>
 </signal>
 <signal name="N$1">
 <contactref element="R1" pad="1"/>
@@ -2699,7 +2701,6 @@ design rules under a new name.</description>
 <contactref element="Q1" pad="2"/>
 <wire x1="45.72" y1="18.898" x2="46.77" y2="18.898" width="0.254" layer="1"/>
 <wire x1="46.77" y1="18.898" x2="46.77" y2="15.9" width="0.254" layer="1"/>
-<wire x1="40.81" y1="19.37" x2="38.58" y2="35.56" width="0" layer="19" extent="1-1"/>
 <wire x1="45.72" y1="18.898" x2="46.99" y2="18.898" width="0.254" layer="1"/>
 <wire x1="46.99" y1="18.898" x2="46.99" y2="12.7" width="0.254" layer="1"/>
 <via x="46.99" y="12.7" extent="1-16" drill="0.7" shape="square"/>
@@ -2708,6 +2709,7 @@ design rules under a new name.</description>
 <via x="38.1" y="19.05" extent="1-16" drill="0.7" shape="square"/>
 <wire x1="38.1" y1="19.05" x2="40.81" y2="19.05" width="0.254" layer="1"/>
 <wire x1="40.81" y1="19.05" x2="40.81" y2="19.37" width="0.254" layer="1"/>
+<wire x1="40.81" y1="19.37" x2="38.58" y2="35.56" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="3.3V">
 <contactref element="U2" pad="1"/>
@@ -2832,8 +2834,9 @@ design rules under a new name.</description>
 <contactref element="S1" pad="2"/>
 <contactref element="R7" pad="1"/>
 <contactref element="Q1" pad="3"/>
+<wire x1="43.332" y1="16.51" x2="43.01" y2="16.51" width="0.254" layer="1"/>
+<wire x1="43.01" y1="16.51" x2="43.01" y2="20.32" width="0.254" layer="1"/>
 <wire x1="43.01" y1="20.32" x2="75.215" y2="34.29" width="0" layer="19" extent="1-1"/>
-<wire x1="43.332" y1="16.51" x2="43.01" y2="20.32" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="IN">
 <contactref element="S1" pad="5"/>

@@ -11267,9 +11267,9 @@ Very common IC. This is generically called 'MAX232', but works with the 3V equiv
 <label x="231.14" y="88.9" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="U6" gate="G$1" pin="50"/>
-<wire x1="66.04" y1="-38.1" x2="91.44" y2="-38.1" width="0.1524" layer="91"/>
-<label x="83.82" y="-38.1" size="1.778" layer="95"/>
+<pinref part="U6" gate="G$1" pin="51"/>
+<wire x1="66.04" y1="-40.64" x2="91.44" y2="-40.64" width="0.1524" layer="91"/>
+<label x="83.82" y="-40.64" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="SCK" class="0">
@@ -11293,9 +11293,9 @@ Very common IC. This is generically called 'MAX232', but works with the 3V equiv
 <label x="287.02" y="99.06" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="U6" gate="G$1" pin="51"/>
-<wire x1="66.04" y1="-40.64" x2="91.44" y2="-40.64" width="0.1524" layer="91"/>
-<label x="83.82" y="-40.64" size="1.778" layer="95"/>
+<pinref part="U6" gate="G$1" pin="50"/>
+<wire x1="66.04" y1="-38.1" x2="91.44" y2="-38.1" width="0.1524" layer="91"/>
+<label x="83.82" y="-38.1" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="N$5" class="0">

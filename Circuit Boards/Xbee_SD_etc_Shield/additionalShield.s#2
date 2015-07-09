@@ -9698,6 +9698,14 @@ Zero Insertion Force Socked&lt;p&gt;
 <pad name="P$5" x="5.08" y="0" drill="1.1"/>
 <pad name="P$6" x="5.08" y="2.54" drill="1.1"/>
 </package>
+<package name="DF3A-2P-2DSA">
+<wire x1="0" y1="5.0038" x2="0" y2="0" width="0.127" layer="21"/>
+<wire x1="0" y1="0" x2="5.9999875" y2="0" width="0.127" layer="21"/>
+<wire x1="5.9999875" y1="0" x2="5.9999875" y2="5.0038" width="0.127" layer="21"/>
+<wire x1="5.9999875" y1="5.0038" x2="0" y2="5.0038" width="0.127" layer="21"/>
+<pad name="P$1" x="2" y="1.000759375" drill="0.8"/>
+<pad name="P$2" x="3.999990625" y="1.000759375" drill="0.8"/>
+</package>
 </packages>
 <symbols>
 <symbol name="PIN">
@@ -9725,6 +9733,23 @@ Zero Insertion Force Socked&lt;p&gt;
 <connect gate="G$4" pin="KL" pad="P$4"/>
 <connect gate="G$5" pin="KL" pad="P$5"/>
 <connect gate="G$6" pin="KL" pad="P$6"/>
+</connects>
+<technologies>
+<technology name=""/>
+</technologies>
+</device>
+</devices>
+</deviceset>
+<deviceset name="DF3A-2P-2DSA">
+<gates>
+<gate name="G$1" symbol="PIN" x="2.54" y="12.7"/>
+<gate name="G$2" symbol="PIN" x="2.54" y="10.16"/>
+</gates>
+<devices>
+<device name="" package="DF3A-2P-2DSA">
+<connects>
+<connect gate="G$1" pin="KL" pad="P$1"/>
+<connect gate="G$2" pin="KL" pad="P$2"/>
 </connects>
 <technologies>
 <technology name=""/>
@@ -10385,6 +10410,8 @@ Very common IC. This is generically called 'MAX232', but works with the 3V equiv
 <part name="P+14" library="supply1" deviceset="+12V" device=""/>
 <part name="U6" library="SparkFun-Boards" deviceset="ARDUINO-MEGA" device="FULL"/>
 <part name="GND7" library="SparkFun" deviceset="GND" device=""/>
+<part name="U$12" library="con-3m" deviceset="DF3A-2P-2DSA" device=""/>
+<part name="U$13" library="con-3m" deviceset="DF3A-2P-2DSA" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -10515,6 +10542,10 @@ Very common IC. This is generically called 'MAX232', but works with the 3V equiv
 <instance part="P+14" gate="1" x="309.88" y="246.38"/>
 <instance part="U6" gate="G$1" x="45.72" y="5.08"/>
 <instance part="GND7" gate="1" x="17.78" y="-53.34"/>
+<instance part="U$12" gate="G$1" x="139.7" y="195.58" rot="R180"/>
+<instance part="U$12" gate="G$2" x="139.7" y="193.04" rot="R180"/>
+<instance part="U$13" gate="G$1" x="139.7" y="187.96" rot="R180"/>
+<instance part="U$13" gate="G$2" x="139.7" y="185.42" rot="R180"/>
 </instances>
 <busses>
 </busses>
@@ -11331,15 +11362,19 @@ Very common IC. This is generically called 'MAX232', but works with the 3V equiv
 <net name="PRXD_1" class="0">
 <segment>
 <pinref part="U5" gate="G$1" pin="T1OUT"/>
-<wire x1="78.74" y1="195.58" x2="114.3" y2="195.58" width="0.1524" layer="91"/>
+<wire x1="78.74" y1="195.58" x2="134.62" y2="195.58" width="0.1524" layer="91"/>
 <label x="106.68" y="195.58" size="1.778" layer="95"/>
+<pinref part="U$12" gate="G$1" pin="KL"/>
 </segment>
 </net>
 <net name="PTXD_1" class="0">
 <segment>
 <pinref part="U5" gate="G$1" pin="R1IN"/>
-<wire x1="78.74" y1="190.5" x2="114.3" y2="190.5" width="0.1524" layer="91"/>
+<wire x1="78.74" y1="190.5" x2="121.92" y2="190.5" width="0.1524" layer="91"/>
 <label x="106.68" y="190.5" size="1.778" layer="95"/>
+<pinref part="U$12" gate="G$2" pin="KL"/>
+<wire x1="134.62" y1="193.04" x2="121.92" y2="193.04" width="0.1524" layer="91"/>
+<wire x1="121.92" y1="193.04" x2="121.92" y2="190.5" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$13" class="0">
@@ -11421,8 +11456,11 @@ Very common IC. This is generically called 'MAX232', but works with the 3V equiv
 <net name="PRXD_2" class="0">
 <segment>
 <pinref part="U5" gate="G$1" pin="T2OUT"/>
-<wire x1="78.74" y1="193.04" x2="114.3" y2="193.04" width="0.1524" layer="91"/>
+<wire x1="78.74" y1="193.04" x2="119.38" y2="193.04" width="0.1524" layer="91"/>
 <label x="106.68" y="193.04" size="1.778" layer="95"/>
+<pinref part="U$13" gate="G$1" pin="KL"/>
+<wire x1="134.62" y1="187.96" x2="119.38" y2="187.96" width="0.1524" layer="91"/>
+<wire x1="119.38" y1="187.96" x2="119.38" y2="193.04" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="PTXD_2" class="0">
@@ -11430,6 +11468,9 @@ Very common IC. This is generically called 'MAX232', but works with the 3V equiv
 <pinref part="U5" gate="G$1" pin="R2IN"/>
 <wire x1="78.74" y1="187.96" x2="114.3" y2="187.96" width="0.1524" layer="91"/>
 <label x="106.68" y="187.96" size="1.778" layer="95"/>
+<pinref part="U$13" gate="G$2" pin="KL"/>
+<wire x1="134.62" y1="185.42" x2="114.3" y2="185.42" width="0.1524" layer="91"/>
+<wire x1="114.3" y1="185.42" x2="114.3" y2="187.96" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$23" class="0">

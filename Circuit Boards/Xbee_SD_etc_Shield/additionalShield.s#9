@@ -11029,8 +11029,9 @@ NUMBERS ON THESE</text>
 <label x="101.6" y="124.46" size="1.27" layer="95" rot="R180" xref="yes"/>
 </segment>
 <segment>
-<wire x1="119.38" y1="-38.1" x2="149.86" y2="-38.1" width="0.1524" layer="91"/>
-<label x="121.92" y="-38.1" size="1.778" layer="95"/>
+<pinref part="U6" gate="G$1" pin="9"/>
+<wire x1="25.4" y1="-25.4" x2="0" y2="-25.4" width="0.1524" layer="91"/>
+<label x="0" y="-25.4" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="D_RX" class="0">
@@ -11041,8 +11042,9 @@ NUMBERS ON THESE</text>
 <label x="116.84" y="124.46" size="1.27" layer="95" xref="yes"/>
 </segment>
 <segment>
-<wire x1="119.38" y1="-35.56" x2="149.86" y2="-35.56" width="0.1524" layer="91"/>
-<label x="121.92" y="-35.56" size="1.778" layer="95"/>
+<pinref part="U6" gate="G$1" pin="8"/>
+<wire x1="25.4" y1="-22.86" x2="0" y2="-22.86" width="0.1524" layer="91"/>
+<label x="0" y="-22.86" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="UART_RX" class="0">

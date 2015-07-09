@@ -10394,7 +10394,7 @@ Very common IC. This is generically called 'MAX232', but works with the 3V equiv
 <text x="175.26" y="7.62" size="1.778" layer="91">XBEE CIRCUITRY</text>
 <text x="254" y="8.636" size="1.778" layer="97">500mA Peak</text>
 <text x="254" y="11.176" size="1.778" layer="97">MIC5219-3.3V</text>
-<text x="2.54" y="142.24" size="1.778" layer="91">CHECK THESE RESISTORS, 1K DOESNT SEEM RIGHT</text>
+<text x="5.08" y="157.48" size="1.778" layer="91">CHECK THESE RESISTORS, 1K DOESNT SEEM RIGHT</text>
 <text x="299.72" y="33.02" size="1.778" layer="91">CHECK THIS RESISTOR</text>
 <text x="213.36" y="73.66" size="1.778" layer="91">I REMEMBER HAVING TO MODIFY THE
 SD CARD SHIELD ON ROUGHIE 1.
