@@ -66,13 +66,18 @@ const int motBConf2 = 34; //changed
 const int pumpOn = 22; //changed
 const int pumpDir = 24; //changed
 
-const int tankmid = 290;
-const int linmid = 450;
-const int rotmid = 700;
-const int linfrontlimit = 140;
-const int linbacklimit = 750;
+//// LINEAR MASS LIMITS
+const int linmid = 525;
+const int linfrontlimit = 280;
+const int linbacklimit = 770;
+
+//// WATER TANK LIMITS
+const int tankmid = 270;
 const int tankbacklimit = 80;
 const int tankfrontlimit = 500; //WAS 500
+
+//// ROTARY MASS LIMITS
+const int rotmid = 700;
 const int rotlowlimit = rotmid - 150;
 const int rothighlimit = rotmid + 150;
 
@@ -107,8 +112,8 @@ void setup()
   param.linPos = 400; // Limits are 138 945
   param.rotPos = rotmid; // 600 to 680
   param.tankPos = 285; // 70 to 500
-  param.linRate = 200;
-  param.rotRate = 255;
+  param.linRate = 185;
+  param.rotRate = 200;
   param.linFrontLimit = linfrontlimit;
   param.linBackLimit = linbacklimit;
   param.tankBackLimit = tankbacklimit;
@@ -870,7 +875,7 @@ void moveLinMass(int dest, int rate) {
     digitalWrite(motAConf2, LOW);
   }
   digitalWrite(motStdby, HIGH);
-  digitalWrite(motAPWM, rate);
+  analogWrite(motAPWM, rate);
 
   return;
 }
@@ -1029,7 +1034,7 @@ float linMassRatePID(int dest) {
   rate = (P*kp + I*ki + D*kd)/param.rateScale;
 //  rate = P*kp/param.rateScale;
   rate = abs(rate);//make it positive rate so things don't get too weird.
-  rate = constrain(rate, 0, 255);
+  rate = constrain(rate, 0, 200);
   if(rate < 15) {
     rate = 0;
   }
@@ -1071,7 +1076,7 @@ float rollController(float dest) {
   P = error_act_r;
   rate = P*kp;
   rate = abs(rate);//make it positive rate so things don't get too weird.
-  rate = constrain(rate, 0, 255);
+  rate = constrain(rate, 0, 200);
 //  Serial.println(rate);
   if(rate < 120) {
     rate = 0;

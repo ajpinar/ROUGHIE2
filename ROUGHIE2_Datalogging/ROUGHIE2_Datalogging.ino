@@ -60,6 +60,7 @@ struct param_t {
   float rollTarget;
   float rollLimit;
   bool fliproll;
+  int number_of_glides;
 } 
 param;
 // linpos 850 rotpos 680 tankpos 400
@@ -75,13 +76,18 @@ const int motBConf2 = 34; //changed
 const int pumpOn = 22; //changed
 const int pumpDir = 24; //changed
 
-const int tankmid = 290;
-const int linmid = 450;
-const int rotmid = 700;
-const int linfrontlimit = 140;
-const int linbacklimit = 750;
+//// LINEAR MASS LIMITS
+const int linmid = 525;
+const int linfrontlimit = 300;
+const int linbacklimit = 700;
+
+//// WATER TANK LIMITS
+const int tankmid = 270;
 const int tankbacklimit = 80;
 const int tankfrontlimit = 500; //WAS 500
+
+//// ROTARY MASS LIMITS
+const int rotmid = 700;
 const int rotlowlimit = rotmid - 150;
 const int rothighlimit = rotmid + 150;
 
@@ -94,14 +100,14 @@ float error_prev_r = 0;
 
 int tankLevel = A8;
 int linPos = A9;
-int pressureSensorPin = A10;
+int pressureSensorPin = A5;
 //int linFrontLimit = 140;
 //int linBackLimit = 890;
 int rotPos = A12;
 
 bool SDgo = 0;
 
-char *help = "Commands: \n\tparams will show the current parameters and acceptable ranges \n\treset will center linear mass and water tank (for trimming)\n\tupdate [-rothighlimit|-rotlowlimit|-linfrontlimit|-linbacklimit|-tankhighlimit|-tanklowlimit|-linpos|-rotpos\n\t\t-tankpos|-linrate|-rotrate|-destime|-risetime|-tankmid|-linmid|-rotmid|-allowedWorkTime -linNoseUpTarget\n\t\t -linNoseDownTarget -linkp -linki -linkd -rateScale -rollkp -rollLimit] [newValue]\n\tcurrentpos shows current position of actuators\n\tstart starts glide cycle\n\tstop stops glide cycle\n\tlinear toggles linear PID controller on/off\n\trotary toggle toggles rotary controller on/off with default target of 0 degrees\n\trotary turn X rolls to X degrees\n\tfliproll flips the IMU roll angle\n\tsdstart opens file and starts datalogging\n\tsdstop <notes> stops datalogging, adds <notes>, and closes file\nIf the rotary motor acts weird during reset (goes to limit) keep calling reset until it centers...it should eventually center";
+char *help = "Commands: \n\tparams will show the current parameters and acceptable ranges \n\treset will center linear mass and water tank (for trimming)\n\tupdate [-number_of_glides|-rothighlimit|-rotlowlimit|-linfrontlimit|-linbacklimit|-tankhighlimit|-tanklowlimit|-linpos|-rotpos\n\t\t-tankpos|-linrate|-rotrate|-destime|-risetime|-tankmid|-linmid|-rotmid|-allowedWorkTime -linNoseUpTarget\n\t\t -linNoseDownTarget -linkp -linki -linkd -rateScale -rollkp -rollLimit] [newValue]\n\tcurrentpos shows current position of actuators\n\tstart starts glide cycle\n\tstop stops glide cycle\n\tlinear toggles linear PID controller on/off\n\trotary toggle toggles rotary controller on/off with default target of 0 degrees\n\trotary turn X rolls to X degrees\n\tfliproll flips the IMU roll angle\n\tsdstart opens file and starts datalogging\n\tsdstop <notes> stops datalogging, adds <notes>, and closes file\nIf the rotary motor acts weird during reset (goes to limit) keep calling reset until it centers...it should eventually center";
 
 void setup()
 {
@@ -110,7 +116,7 @@ void setup()
   Serial.begin(9600);
   Serial.setTimeout(10);
 //  Serial.println("\n```````````````````````````````````````````````````````````````````````````````\n   @@@@@'     @@@@        @@@@@@         ,@@@@@@`              @'@+,``:@,      \n   @@@@@@     @@@@       `@@@@@@        @@@@@@@@.            `@@@        @     \n   @@@@@@#    @@@@       @@@@@@@+      @@@@@@@@@:          `@             #    \n   @@@@@@@    @@@@      `@@@@@@@@      @@@@@:`,#+         #`              ,    \n   @@@@@@@@   @@@@      @@@@`@@@@      @@@@'            .+                 .   \n   @@@@@@@@`  @@@@     .@@@@ '@@@#     @@@@@`          #`                  :   \n   @@@@@@@@@  @@@@     @@@@.  @@@@      @@@@@:        @                    ,   \n   @@@@ @@@@. @@@@    ,@@@@,,,@@@@.      @@@@@#      @                     `   \n  `@@@# #@@@@ @@@#    @@@@@@@@@@@@@       @@@@@#                  ```     :    \n  .@@@#  @@@@'@@@+   ;@@@@@@@@@@@@@        @@@@@:,      ',,,   ;,,,,,,.   @    \n  ,@@@'  :@@@@@@@;   @@@@@@@@@@@@@@;        @@@@#.     `,,,,,  ;,,++,,,   .    \n  ;@@@;   @@@@@@@:  +@@@@      @@@@@  @@.  :@@@@#.     ;,,+,,  ;,, `,,.  #     \n  '@@@;   `@@@@@@,  @@@@@      ,@@@@  '@@@@@@@@@,`    `,,`',,  ',,,,,:   .     \n  #@@@:    @@@@@@. #@@@@        @@@@# :@@@@@@@@+,`    :,,,,,,, +,,++,,, @      \n  @@@@:     @@@@@. @@@@@        @@@@@ .@@@@@@@',,`   .,,'++',, +,,  ,,,        \n                                              +,,,,,,:,,   +,,`+,,,,,,`        \n                                              +''''';''`   :''`+'''''.         \n                                                                               \nNonlinear  and      Autonomous        Systems          Laboratory              \n");
-  Serial.println("Version 5.29.2015");
+  Serial.println("Version 7.16.2015_datalogging");
   //Serial.println("RRRRRRRRRRRRRRRRR        OOOOOOOOO     UUUUUUUU     UUUUUUUU       GGGGGGGGGGGGGHHHHHHHHH     HHHHHHHHHIIIIIIIIIIEEEEEEEEEEEEEEEEEEEEEE            VVVVVVVV           VVVVVVVV 222222222222222   \nR::::::::::::::::R     OO:::::::::OO   U::::::U     U::::::U    GGG::::::::::::GH:::::::H     H:::::::HI::::::::IE::::::::::::::::::::E            V::::::V           V::::::V2:::::::::::::::22 \nR::::::RRRRRR:::::R  OO:::::::::::::OO U::::::U     U::::::U  GG:::::::::::::::GH:::::::H     H:::::::HI::::::::IE::::::::::::::::::::E            V::::::V           V::::::V2::::::222222:::::2 \nRR:::::R     R:::::RO:::::::OOO:::::::OUU:::::U     U:::::UU G:::::GGGGGGGG::::GHH::::::H     H::::::HHII::::::IIEE::::::EEEEEEEEE::::E            V::::::V           V::::::V2222222     2:::::2 \n  R::::R     R:::::RO::::::O   O::::::O U:::::U     U:::::U G:::::G       GGGGGG  H:::::H     H:::::H    I::::I    E:::::E       EEEEEE             V:::::V           V:::::V             2:::::2 \n  R::::R     R:::::RO:::::O     O:::::O U:::::D     D:::::UG:::::G                H:::::H     H:::::H    I::::I    E:::::E                           V:::::V         V:::::V              2:::::2 \n  R::::RRRRRR:::::R O:::::O     O:::::O U:::::D     D:::::UG:::::G                H::::::HHHHH::::::H    I::::I    E::::::EEEEEEEEEE                  V:::::V       V:::::V            2222::::2  \n  R:::::::::::::RR  O:::::O     O:::::O U:::::D     D:::::UG:::::G    GGGGGGGGGG  H:::::::::::::::::H    I::::I    E:::::::::::::::E                   V:::::V     V:::::V        22222::::::22   \n  R::::RRRRRR:::::R O:::::O     O:::::O U:::::D     D:::::UG:::::G    G::::::::G  H:::::::::::::::::H    I::::I    E:::::::::::::::E                    V:::::V   V:::::V       22::::::::222     \n  R::::R     R:::::RO:::::O     O:::::O U:::::D     D:::::UG:::::G    GGGGG::::G  H::::::HHHHH::::::H    I::::I    E::::::EEEEEEEEEE                     V:::::V V:::::V       2:::::22222        \n  R::::R     R:::::RO:::::O     O:::::O U:::::D     D:::::UG:::::G        G::::G  H:::::H     H:::::H    I::::I    E:::::E                                V:::::V:::::V       2:::::2             \n  R::::R     R:::::RO::::::O   O::::::O U::::::U   U::::::U G:::::G       G::::G  H:::::H     H:::::H    I::::I    E:::::E       EEEEEE                    V:::::::::V        2:::::2             \nRR:::::R     R:::::RO:::::::OOO:::::::O U:::::::UUU:::::::U  G:::::GGGGGGGG::::GHH::::::H     H::::::HHII::::::IIEE::::::EEEEEEEE:::::E ,,,,,,              V:::::::V         2:::::2       222222\nR::::::R     R:::::R OO:::::::::::::OO   UU:::::::::::::UU    GG:::::::::::::::GH:::::::H     H:::::::HI::::::::IE::::::::::::::::::::E ,::::,               V:::::V          2::::::2222222:::::2\nR::::::R     R:::::R   OO:::::::::OO       UU:::::::::UU        GGG::::::GGG:::GH:::::::H     H:::::::HI::::::::IE::::::::::::::::::::E ,::::,                V:::V           2::::::::::::::::::2\nRRRRRRRR     RRRRRRR     OOOOOOOOO           UUUUUUUUU             GGGGGG   GGGGHHHHHHHHH     HHHHHHHHHIIIIIIIIIIEEEEEEEEEEEEEEEEEEEEEE ,:::,,                 VVV            22222222222222222222\n                                                                                                                                       ,:::,\n                                                                                                                                                                                           ,,,,   \n");
   Serial.println(help);
   delay(1000); //Wait for all the printing
@@ -119,7 +125,7 @@ void setup()
   param.linPos = 400; // Limits are 138 945
   param.rotPos = rotmid; // 600 to 680
   param.tankPos = 285; // 70 to 500
-  param.linRate = 200;
+  param.linRate = 185;
   param.rotRate = 255;
   param.linFrontLimit = linfrontlimit;
   param.linBackLimit = linbacklimit;
@@ -143,6 +149,7 @@ void setup()
   param.rollTarget = 0;
   param.fliproll = 0;
   param.rollLimit = 15;
+  param.number_of_glides = 3;
 
   gliderStateMachine(GC_BEGIN);
   gliderStateMachine(GC_STOP);
@@ -158,7 +165,9 @@ void setup()
   //if (!SD.begin(53, 51, 49, 47)) {
     error("Card failed, or not present");
   }
-  Serial.println("card initialized.");
+  else {
+    Serial.println("card initialized!");
+  }
   
   /*
   // create a new file
@@ -464,6 +473,11 @@ void loop()
         Serial.print("Roll Limit updated to: ");
         Serial.println(param.rollLimit);
       }
+      if(strcmp(arg[1], "-number_of_glides") == 0) {
+        param.number_of_glides = atoi(arg[2]);
+        Serial.print("Number of glides updated to: ");
+        Serial.println(param.number_of_glides);
+      }
       else {
         Serial.println(help);
       }
@@ -577,6 +591,7 @@ void gliderStateMachine(int cmd) {
   static bool DoLinPID = 0;
   static bool RotaryControlOn = 0;
   static unsigned long int t0; // initial time of current state
+  static int glide_cycles_completed = 0;
   
   if(cmd == GC_START) {
     enGlider = 1;
@@ -837,8 +852,16 @@ void gliderStateMachine(int cmd) {
         }
         
         if(millis() - t0 > param.riseTime) {
-          state = ME_NOSE_DOWN;
-          entry = 1;
+          glide_cycles_completed += 1;
+          if( glide_cycles_completed < param.number_of_glides ) {
+            state = ME_NOSE_DOWN;
+            entry = 1;
+          }
+          else {
+            //stop
+            state = ME_PAUSE;
+            glide_cycles_completed = 0;
+          }
         }
         break;
         
@@ -1052,7 +1075,7 @@ void moveLinMass(int dest, int rate) {
     digitalWrite(motAConf2, LOW);
   }
   digitalWrite(motStdby, HIGH);
-  digitalWrite(motAPWM, rate);
+  analogWrite(motAPWM, rate);
 
   return;
 }
@@ -1211,7 +1234,7 @@ float linMassRatePID(int dest) {
   rate = (P*kp + I*ki + D*kd)/param.rateScale;
 //  rate = P*kp/param.rateScale;
   rate = abs(rate);//make it positive rate so things don't get too weird.
-  rate = constrain(rate, 0, 255);
+  rate = constrain(rate, 0, 200);
   if(rate < 15) {
     rate = 0;
   }
@@ -1253,7 +1276,7 @@ float rollController(float dest) {
   P = error_act_r;
   rate = P*kp;
   rate = abs(rate);//make it positive rate so things don't get too weird.
-  rate = constrain(rate, 0, 255);
+  rate = constrain(rate, 0, 200);
 //  Serial.println(rate);
   if(rate < 120) {
     rate = 0;
