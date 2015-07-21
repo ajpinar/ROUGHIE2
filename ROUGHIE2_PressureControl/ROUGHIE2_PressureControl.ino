@@ -119,7 +119,7 @@ void setup()
   Serial.begin(9600);
   Serial.setTimeout(10);
 //  Serial.println("\n```````````````````````````````````````````````````````````````````````````````\n   @@@@@'     @@@@        @@@@@@         ,@@@@@@`              @'@+,``:@,      \n   @@@@@@     @@@@       `@@@@@@        @@@@@@@@.            `@@@        @     \n   @@@@@@#    @@@@       @@@@@@@+      @@@@@@@@@:          `@             #    \n   @@@@@@@    @@@@      `@@@@@@@@      @@@@@:`,#+         #`              ,    \n   @@@@@@@@   @@@@      @@@@`@@@@      @@@@'            .+                 .   \n   @@@@@@@@`  @@@@     .@@@@ '@@@#     @@@@@`          #`                  :   \n   @@@@@@@@@  @@@@     @@@@.  @@@@      @@@@@:        @                    ,   \n   @@@@ @@@@. @@@@    ,@@@@,,,@@@@.      @@@@@#      @                     `   \n  `@@@# #@@@@ @@@#    @@@@@@@@@@@@@       @@@@@#                  ```     :    \n  .@@@#  @@@@'@@@+   ;@@@@@@@@@@@@@        @@@@@:,      ',,,   ;,,,,,,.   @    \n  ,@@@'  :@@@@@@@;   @@@@@@@@@@@@@@;        @@@@#.     `,,,,,  ;,,++,,,   .    \n  ;@@@;   @@@@@@@:  +@@@@      @@@@@  @@.  :@@@@#.     ;,,+,,  ;,, `,,.  #     \n  '@@@;   `@@@@@@,  @@@@@      ,@@@@  '@@@@@@@@@,`    `,,`',,  ',,,,,:   .     \n  #@@@:    @@@@@@. #@@@@        @@@@# :@@@@@@@@+,`    :,,,,,,, +,,++,,, @      \n  @@@@:     @@@@@. @@@@@        @@@@@ .@@@@@@@',,`   .,,'++',, +,,  ,,,        \n                                              +,,,,,,:,,   +,,`+,,,,,,`        \n                                              +''''';''`   :''`+'''''.         \n                                                                               \nNonlinear  and      Autonomous        Systems          Laboratory              \n");
-  Serial.println("Version 7.20.2015_pressurecontrol");
+  Serial.println("Version 7.21.2015_pressurecontrol");
   //Serial.println("RRRRRRRRRRRRRRRRR        OOOOOOOOO     UUUUUUUU     UUUUUUUU       GGGGGGGGGGGGGHHHHHHHHH     HHHHHHHHHIIIIIIIIIIEEEEEEEEEEEEEEEEEEEEEE            VVVVVVVV           VVVVVVVV 222222222222222   \nR::::::::::::::::R     OO:::::::::OO   U::::::U     U::::::U    GGG::::::::::::GH:::::::H     H:::::::HI::::::::IE::::::::::::::::::::E            V::::::V           V::::::V2:::::::::::::::22 \nR::::::RRRRRR:::::R  OO:::::::::::::OO U::::::U     U::::::U  GG:::::::::::::::GH:::::::H     H:::::::HI::::::::IE::::::::::::::::::::E            V::::::V           V::::::V2::::::222222:::::2 \nRR:::::R     R:::::RO:::::::OOO:::::::OUU:::::U     U:::::UU G:::::GGGGGGGG::::GHH::::::H     H::::::HHII::::::IIEE::::::EEEEEEEEE::::E            V::::::V           V::::::V2222222     2:::::2 \n  R::::R     R:::::RO::::::O   O::::::O U:::::U     U:::::U G:::::G       GGGGGG  H:::::H     H:::::H    I::::I    E:::::E       EEEEEE             V:::::V           V:::::V             2:::::2 \n  R::::R     R:::::RO:::::O     O:::::O U:::::D     D:::::UG:::::G                H:::::H     H:::::H    I::::I    E:::::E                           V:::::V         V:::::V              2:::::2 \n  R::::RRRRRR:::::R O:::::O     O:::::O U:::::D     D:::::UG:::::G                H::::::HHHHH::::::H    I::::I    E::::::EEEEEEEEEE                  V:::::V       V:::::V            2222::::2  \n  R:::::::::::::RR  O:::::O     O:::::O U:::::D     D:::::UG:::::G    GGGGGGGGGG  H:::::::::::::::::H    I::::I    E:::::::::::::::E                   V:::::V     V:::::V        22222::::::22   \n  R::::RRRRRR:::::R O:::::O     O:::::O U:::::D     D:::::UG:::::G    G::::::::G  H:::::::::::::::::H    I::::I    E:::::::::::::::E                    V:::::V   V:::::V       22::::::::222     \n  R::::R     R:::::RO:::::O     O:::::O U:::::D     D:::::UG:::::G    GGGGG::::G  H::::::HHHHH::::::H    I::::I    E::::::EEEEEEEEEE                     V:::::V V:::::V       2:::::22222        \n  R::::R     R:::::RO:::::O     O:::::O U:::::D     D:::::UG:::::G        G::::G  H:::::H     H:::::H    I::::I    E:::::E                                V:::::V:::::V       2:::::2             \n  R::::R     R:::::RO::::::O   O::::::O U::::::U   U::::::U G:::::G       G::::G  H:::::H     H:::::H    I::::I    E:::::E       EEEEEE                    V:::::::::V        2:::::2             \nRR:::::R     R:::::RO:::::::OOO:::::::O U:::::::UUU:::::::U  G:::::GGGGGGGG::::GHH::::::H     H::::::HHII::::::IIEE::::::EEEEEEEE:::::E ,,,,,,              V:::::::V         2:::::2       222222\nR::::::R     R:::::R OO:::::::::::::OO   UU:::::::::::::UU    GG:::::::::::::::GH:::::::H     H:::::::HI::::::::IE::::::::::::::::::::E ,::::,               V:::::V          2::::::2222222:::::2\nR::::::R     R:::::R   OO:::::::::OO       UU:::::::::UU        GGG::::::GGG:::GH:::::::H     H:::::::HI::::::::IE::::::::::::::::::::E ,::::,                V:::V           2::::::::::::::::::2\nRRRRRRRR     RRRRRRR     OOOOOOOOO           UUUUUUUUU             GGGGGG   GGGGHHHHHHHHH     HHHHHHHHHIIIIIIIIIIEEEEEEEEEEEEEEEEEEEEEE ,:::,,                 VVV            22222222222222222222\n                                                                                                                                       ,:::,\n                                                                                                                                                                                           ,,,,   \n");
   Serial.println(help);
   delay(1000); //Wait for all the printing
@@ -201,7 +201,7 @@ void setup()
   }
   
 
-  logfile.println("millis,stamp,datetime,Pressure,Pitch,Roll,DrawWire,Rot.Pos,LinMassPos,tp1,tp2,yaw,rolld,pitchd,yawd,north,east,up");    
+  logfile.println("millis,stamp,datetime,Pressure,Pitch,Roll,DrawWire,Rot.Pos,LinMassPos,tp1,tp2,yaw,rolld,pitchd,yawd,north,east,up,estimatedDepth");    
   */
 }
 
@@ -292,9 +292,11 @@ void loop()
     logfile.print(", ");
     //up
     logfile.print(um7.up);
+    logfile.println(", ");
+    //estimated depth
+    logfile.print(0.0423062 * (getFiltAnalog(pressureSensorPin) - 102.3));
     logfile.println("");
-  
-  
+   
     // Now we write data to disk! Don't sync too often - requires 2048 bytes of I/O to SD card
     // which uses a bunch of power and takes time
     if ((millis() - syncTime) < SYNC_INTERVAL) {return;}
@@ -713,6 +715,21 @@ void gliderStateMachine(int cmd) {
           }
         }
         
+        if(pressureControlOn) {
+            est_depth = 0.0423062 * (getFiltAnalog(pressureSensorPin) - 102.3);
+            if(est_depth >= param.glide_cycle_bottom) {
+              digitalWrite(pumpOn, LOW); // turn pump off
+              state = ME_NOSE_UP;
+              entry = 1;
+            }
+          }
+        
+        if(millis() - t0 > param.desTime) { //exit condition
+            digitalWrite(pumpOn, LOW); // turn pump off
+            state = ME_NOSE_UP;
+            entry = 1;
+          }
+        
         if(millis() - t0 > param.allowedWorkTime) { //Taking too long
           state = ME_PAUSE;
           entry = 1;
@@ -724,7 +741,7 @@ void gliderStateMachine(int cmd) {
       case ME_GLIDE_DOWN:
           if(entry) {
             pumpOff();
-            t0 = millis();
+            //t0 = millis();
             entry = 0;
           }
           
@@ -839,6 +856,38 @@ void gliderStateMachine(int cmd) {
           }
         }
         
+        if(pressureControlOn) {
+          est_depth = 0.0423062 * (getFiltAnalog(pressureSensorPin) - 102.3);
+          if(est_depth <= param.glide_cycle_top) {
+            glide_cycles_completed += 1;
+            if( glide_cycles_completed < param.number_of_glides ) {
+              digitalWrite(pumpOn, LOW);
+              state = ME_NOSE_DOWN;
+              entry = 1;
+            }
+            else {
+              //stop
+              digitalWrite(pumpOn, LOW);
+              state = ME_PAUSE;
+              glide_cycles_completed = 0;
+            }
+            }
+          }
+        
+        if(millis() - t0 > param.riseTime) { //exit condition
+          glide_cycles_completed += 1;
+          if( glide_cycles_completed < param.number_of_glides ) {
+            digitalWrite(pumpOn, LOW);
+            state = ME_NOSE_DOWN;
+            entry = 1;
+          }
+          else {
+            //stop
+            state = ME_PAUSE;
+            glide_cycles_completed = 0;
+          }
+          }
+        
         if(millis() - t0 > param.allowedWorkTime) { //Taking too long
           state = ME_PAUSE;
           entry = 1;
@@ -849,7 +898,7 @@ void gliderStateMachine(int cmd) {
         
       case ME_GLIDE_UP:
         if(entry) {
-          t0 = millis();
+          //t0 = millis();
           pumpOff();
           entry = 0;
         }
