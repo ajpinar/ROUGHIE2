@@ -136,8 +136,8 @@ void setup()
   param.tankFrontLimit = tankfrontlimit;
   param.rotLowLimit = rotlowlimit;
   param.rotHighLimit = rothighlimit;
-  param.desTime = 10000;
-  param.riseTime = 10000;
+  param.desTime = 20000;
+  param.riseTime = 20000;
   param.tankMid = 285;
   param.linMid = 515;
   param.rotMid = rotmid;
@@ -152,7 +152,7 @@ void setup()
   param.rollTarget = 0;
   param.fliproll = 0;
   param.rollLimit = 15;
-  param.number_of_glides = 3;
+  param.number_of_glides = 4;
   param.glide_cycle_bottom = 8;
   param.glide_cycle_top = 5;
 
