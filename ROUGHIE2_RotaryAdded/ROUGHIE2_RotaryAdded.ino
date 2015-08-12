@@ -84,6 +84,7 @@ const int PIN_dyna_tx = 12;
 
 const int dyna_id = 1;
 const long int dyna_Sbaud = 57600;
+const int servo_current_limit = 10;
 
 bool torque = 1;
 
@@ -121,9 +122,7 @@ int rotPos = A12;
 
 bool SDgo = 0;
 
-SoftwareSerial ss(50, 51); // RX, TX does this need to be here?
-
-char *help = "Commands: \n\tparams will show the current parameters and acceptable ranges \n\treset will center linear mass and water tank (for trimming)\n\tupdate [-glidebottom|-glidetop|-number_of_glides|-rothighlimit|-rotlowlimit|-linfrontlimit|-linbacklimit|-tankhighlimit|-tanklowlimit|-linpos|-rotpos\n\t\t-tankpos|-linrate|-rotrate|-destime|-risetime|-tankmid|-linmid|-rotmid|-allowedWorkTime -linNoseUpTarget\n\t\t -linNoseDownTarget -linkp -linki -linkd -rateScale -rollkp -rollLimit] [newValue]\n\tcurrentpos shows current position of actuators\n\tstart starts glide cycle\n\tstop stops glide cycle\n\tlinear toggles linear PID controller on/off\n\trotary toggle toggles rotary controller on/off with default target of 0 degrees\n\trotary turn X rolls to X degrees\n\tfliproll flips the IMU roll angle\n\tsdstart opens file and starts datalogging\n\tsdstop <notes> stops datalogging, adds <notes>, and closes file\nIf the rotary motor acts weird during reset (goes to limit) keep calling reset until it centers...it should eventually center\n\n\tpressurecontrol\t-\tToggles pressure control on or off\n\n\tservoltage - \tshows servo voltage\ntoggle_hold - \ttoggles holding torque on servo\ncurrent_servo_position - \tself explanatory\nservoparameters - \tshows current servo parameters\nturnto # - \trotates servo to # (try 400-700 range)\nrotspeed # - \t changes rotation speed to #, Default is 800\nresetservocomm - \t resets serial communication with servo";
+char *help = "Commands: \n\tparams will show the current parameters and acceptable ranges \n\treset will center linear mass and water tank (for trimming)\n\tupdate [-glidebottom|-glidetop|-number_of_glides|-rothighlimit|-rotlowlimit|-linfrontlimit|-linbacklimit|-tankhighlimit|-tanklowlimit|-linpos|-rotpos\n\t\t-tankpos|-linrate|-rotrate|-destime|-risetime|-tankmid|-linmid|-rotmid|-allowedWorkTime -linNoseUpTarget\n\t\t -linNoseDownTarget -linkp -linki -linkd -rateScale -rollkp -rollLimit] [newValue]\n\tcurrentpos shows current position of actuators\n\tstart starts glide cycle\n\tstop stops glide cycle\n\tlinear toggles linear PID controller on/off\n\trotary toggle toggles rotary controller on/off with default target of 0 degrees\n\trotary turn X rolls to X degrees\n\tfliproll flips the IMU roll angle\n\tsdstart opens file and starts datalogging\n\tsdstop <notes> stops datalogging, adds <notes>, and closes file\nIf the rotary motor acts weird during reset (goes to limit) keep calling reset until it centers...it should eventually center\n\n\tpressurecontrol\t-\tToggles pressure control on or off\n\n\tservoltage - \tshows servo voltage\n\ttoggle_hold - \ttoggles holding torque on servo\n\tcurrent_servo_position - \tself explanatory\n\tservoparameters - \tshows current servo parameters\n\tturnto # - \trotates servo to # (try 500-900 range, center is 700)\n\trotspeed # - \t changes rotation speed to #, Default is 800\n\tresetservocomm - \t resets serial communication with servo";
 
 void setup()
 {
@@ -169,7 +168,7 @@ void setup()
   param.glide_cycle_bottom = 8;
   param.glide_cycle_top = 5;
   param.rotation_speed = 800;
-  param.desiredRotationAngle = 512;
+  param.desiredRotationAngle = 700;
 
   gliderStateMachine(GC_BEGIN);
   gliderStateMachine(GC_STOP);
@@ -223,23 +222,31 @@ void setup()
   Dynamixel.begin(dyna_Sbaud, PIN_dyna_rx, PIN_dyna_tx);
   Dynamixel.reset(dyna_id);
   
-  if (abs(Dynamixel.readPosition(dyna_id) - param.desiredRotationAngle) > 10) {
-    Serial.print("Resetting servo to ");
-    Serial.print(param.desiredRotationAngle);
-    Serial.println("...");
-    Dynamixel.moveSpeed(dyna_id, param.desiredRotationAngle, param.rotation_speed);
-    uint32_t servo_reset_timer = millis();
-    while (Dynamixel.moving(dyna_id)) {
-      if((millis() - servo_reset_timer) > 5000) {
-        Serial.println("Servo stalled.");
-        break;
-      }
-    };
-    Serial.println("Done!");
-  }
+  Dynamixel.readPosition(dyna_id);
+  Dynamixel.readPosition(dyna_id);
+  Dynamixel.readPosition(dyna_id);
+  
+  Serial.print("Resetting servo to ");
+  Serial.print(param.desiredRotationAngle);
+  Serial.println("...");
+  Dynamixel.moveSpeed(dyna_id, param.desiredRotationAngle, param.rotation_speed);
+  uint32_t servo_reset_timer = millis();
+  while (Dynamixel.moving(dyna_id)) {
+    if((millis() - servo_reset_timer) > 5000) {
+      Serial.println("Servo stalled.");
+      break;
+    }
+  };
+  Serial.println("Done!");
   
   Dynamixel.torqueStatus(dyna_id, ON);
   Serial.println("Servo set to hold shaft at current position.\n");
+  
+  //this supposedly limits the amount of current hte servo can draw
+  //for now lets keep this since we're using a small linear voltage regulator
+  Dynamixel.setPunch(dyna_id, servo_current_limit);
+  
+  Serial.println("Done with setup");
 }
 
 void loop()
@@ -465,6 +472,7 @@ void loop()
     }
     else if(strcmp(arg[0], "current_servo_position") == 0) {
       Serial.print("Current Position: ");
+      Dynamixel.readPosition(dyna_id);
       Serial.println(Dynamixel.readPosition(dyna_id));
     }
     
@@ -481,25 +489,23 @@ void loop()
         
     }
     else if(strcmp(arg[0], "resetservocomm") == 0) {
-      Serial.print("Resetting servo communication...");
+      Serial.println("Resetting servo communication...");
       Dynamixel.begin(dyna_Sbaud, PIN_dyna_rx, PIN_dyna_tx);
       Dynamixel.reset(dyna_id);
-      Serial.print("Centering servo...");
+      Serial.println("Centering servo...");
       param.desiredRotationAngle = 512;
-      if (abs(Dynamixel.readPosition(dyna_id) - param.desiredRotationAngle) > 10) {
-        Serial.print("Resetting servo to ");
-        Serial.print(param.desiredRotationAngle);
-        Serial.println("...");
-        Dynamixel.moveSpeed(dyna_id, param.desiredRotationAngle, param.rotation_speed);
-        uint32_t servo_reset_timer = millis();
-        while (Dynamixel.moving(dyna_id)) {
-          if((millis() - servo_reset_timer) > 5000) {
-            Serial.println("Servo stalled.");
-            break;
-          }
+      Serial.print("Resetting servo to ");
+      Serial.print(param.desiredRotationAngle);
+      Serial.println("...");
+      Dynamixel.moveSpeed(dyna_id, param.desiredRotationAngle, param.rotation_speed);
+      uint32_t servo_reset_timer = millis();
+      while (Dynamixel.moving(dyna_id)) {
+        if((millis() - servo_reset_timer) > 5000) {
+          Serial.println("Servo stalled.");
+          break;
         }
-        Serial.println("Done!");
       }
+        Serial.println("Done!");
     }
     else if(strcmp(arg[0], "update") == 0) {  // update parameter
       if(strcmp(arg[1], "-linpos") == 0) {
