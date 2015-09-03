@@ -311,9 +311,9 @@ void loop()
   if(um7.updated_p) { // pose packet
 //  if(1) {
       um7.updated_p = 0;
-      //Serial.println("NEW IMU DATA");
+      // Serial.println("NEW IMU DATA");
       //Serial.print("t_p1 = "); Serial.print(um7.t_p1); Serial.println("; ");
-      //Serial.print("roll = "); Serial.print(um7.roll); Serial.println("; ");
+      // Serial.print("roll = "); Serial.print(um7.roll); Serial.println("; ");
       //Serial.print("pitch = "); Serial.print(um7.pitch); Serial.println("; ");
       //Serial.print("yaw = "); Serial.print(um7.yaw); Serial.println("; ");
       //Serial.print("rolld = "); Serial.print(um7.rolld); Serial.println("; ");
@@ -630,6 +630,7 @@ void gliderStateMachine(int cmd) {
 //    Serial.println(um7.roll);
 //    Serial.print("Rotary position: ");
 //    Serial.println(getFiltAnalog(rotPos));
+
 
 //digitalWrite(pumpOn, HIGH);
 //digitalWrite(pumpDir, LOW); // WAS HIGH
@@ -1317,6 +1318,8 @@ float linMassRatePID(int dest) {
   kd=param.linkd;//
   float P, D, rate;
   int currentPos = getFiltAnalog(linPos);//This is giving some funky positions. Maybe need to filter a bit harder.
+  Serial.print("current anlge: ");
+  Serial.println(um7.roll);
   int linpitchlimit = 45;
   if(dest < -linpitchlimit) {//check bounds
     Serial.println("Cannot go that far forward");
