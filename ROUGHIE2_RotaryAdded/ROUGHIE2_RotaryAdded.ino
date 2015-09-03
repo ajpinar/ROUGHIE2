@@ -47,8 +47,8 @@ struct param_t {
   int tankFrontLimit;
   int rotLowLimit;
   int rotHighLimit;
-  int desTime;
-  int riseTime;
+  unsigned int desTime;
+  unsigned int riseTime;
   int tankMid;
   int linMid;
   int rotMid;
