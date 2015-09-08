@@ -62,7 +62,7 @@ struct param_t {
   int tankMid;
   int linMid;
   int rotMid;
-  int allowedWorkTime;
+  unsigned int allowedWorkTime;
   float linkp;
   float linki;
   float linkd;
@@ -150,7 +150,6 @@ void setup()
   Serial.setTimeout(10);
 //  Serial.println("\n```````````````````````````````````````````````````````````````````````````````\n   @@@@@'     @@@@        @@@@@@         ,@@@@@@`              @'@+,``:@,      \n   @@@@@@     @@@@       `@@@@@@        @@@@@@@@.            `@@@        @     \n   @@@@@@#    @@@@       @@@@@@@+      @@@@@@@@@:          `@             #    \n   @@@@@@@    @@@@      `@@@@@@@@      @@@@@:`,#+         #`              ,    \n   @@@@@@@@   @@@@      @@@@`@@@@      @@@@'            .+                 .   \n   @@@@@@@@`  @@@@     .@@@@ '@@@#     @@@@@`          #`                  :   \n   @@@@@@@@@  @@@@     @@@@.  @@@@      @@@@@:        @                    ,   \n   @@@@ @@@@. @@@@    ,@@@@,,,@@@@.      @@@@@#      @                     `   \n  `@@@# #@@@@ @@@#    @@@@@@@@@@@@@       @@@@@#                  ```     :    \n  .@@@#  @@@@'@@@+   ;@@@@@@@@@@@@@        @@@@@:,      ',,,   ;,,,,,,.   @    \n  ,@@@'  :@@@@@@@;   @@@@@@@@@@@@@@;        @@@@#.     `,,,,,  ;,,++,,,   .    \n  ;@@@;   @@@@@@@:  +@@@@      @@@@@  @@.  :@@@@#.     ;,,+,,  ;,, `,,.  #     \n  '@@@;   `@@@@@@,  @@@@@      ,@@@@  '@@@@@@@@@,`    `,,`',,  ',,,,,:   .     \n  #@@@:    @@@@@@. #@@@@        @@@@# :@@@@@@@@+,`    :,,,,,,, +,,++,,, @      \n  @@@@:     @@@@@. @@@@@        @@@@@ .@@@@@@@',,`   .,,'++',, +,,  ,,,        \n                                              +,,,,,,:,,   +,,`+,,,,,,`        \n                                              +''''';''`   :''`+'''''.         \n                                                                               \nNonlinear  and      Autonomous        Systems          Laboratory              \n");
   Serial.println("Version 9.8.2015_RotaryAdded");
-  //Serial.println("RRRRRRRRRRRRRRRRR        OOOOOOOOO     UUUUUUUU     UUUUUUUU       GGGGGGGGGGGGGHHHHHHHHH     HHHHHHHHHIIIIIIIIIIEEEEEEEEEEEEEEEEEEEEEE            VVVVVVVV           VVVVVVVV 222222222222222   \nR::::::::::::::::R     OO:::::::::OO   U::::::U     U::::::U    GGG::::::::::::GH:::::::H     H:::::::HI::::::::IE::::::::::::::::::::E            V::::::V           V::::::V2:::::::::::::::22 \nR::::::RRRRRR:::::R  OO:::::::::::::OO U::::::U     U::::::U  GG:::::::::::::::GH:::::::H     H:::::::HI::::::::IE::::::::::::::::::::E            V::::::V           V::::::V2::::::222222:::::2 \nRR:::::R     R:::::RO:::::::OOO:::::::OUU:::::U     U:::::UU G:::::GGGGGGGG::::GHH::::::H     H::::::HHII::::::IIEE::::::EEEEEEEEE::::E            V::::::V           V::::::V2222222     2:::::2 \n  R::::R     R:::::RO::::::O   O::::::O U:::::U     U:::::U G:::::G       GGGGGG  H:::::H     H:::::H    I::::I    E:::::E       EEEEEE             V:::::V           V:::::V             2:::::2 \n  R::::R     R:::::RO:::::O     O:::::O U:::::D     D:::::UG:::::G                H:::::H     H:::::H    I::::I    E:::::E                           V:::::V         V:::::V              2:::::2 \n  R::::RRRRRR:::::R O:::::O     O:::::O U:::::D     D:::::UG:::::G                H::::::HHHHH::::::H    I::::I    E::::::EEEEEEEEEE                  V:::::V       V:::::V            2222::::2  \n  R:::::::::::::RR  O:::::O     O:::::O U:::::D     D:::::UG:::::G    GGGGGGGGGG  H:::::::::::::::::H    I::::I    E:::::::::::::::E                   V:::::V     V:::::V        22222::::::22   \n  R::::RRRRRR:::::R O:::::O     O:::::O U:::::D     D:::::UG:::::G    G::::::::G  H:::::::::::::::::H    I::::I    E:::::::::::::::E                    V:::::V   V:::::V       22::::::::222     \n  R::::R     R:::::RO:::::O     O:::::O U:::::D     D:::::UG:::::G    GGGGG::::G  H::::::HHHHH::::::H    I::::I    E::::::EEEEEEEEEE                     V:::::V V:::::V       2:::::22222        \n  R::::R     R:::::RO:::::O     O:::::O U:::::D     D:::::UG:::::G        G::::G  H:::::H     H:::::H    I::::I    E:::::E                                V:::::V:::::V       2:::::2             \n  R::::R     R:::::RO::::::O   O::::::O U::::::U   U::::::U G:::::G       G::::G  H:::::H     H:::::H    I::::I    E:::::E       EEEEEE                    V:::::::::V        2:::::2             \nRR:::::R     R:::::RO:::::::OOO:::::::O U:::::::UUU:::::::U  G:::::GGGGGGGG::::GHH::::::H     H::::::HHII::::::IIEE::::::EEEEEEEE:::::E ,,,,,,              V:::::::V         2:::::2       222222\nR::::::R     R:::::R OO:::::::::::::OO   UU:::::::::::::UU    GG:::::::::::::::GH:::::::H     H:::::::HI::::::::IE::::::::::::::::::::E ,::::,               V:::::V          2::::::2222222:::::2\nR::::::R     R:::::R   OO:::::::::OO       UU:::::::::UU        GGG::::::GGG:::GH:::::::H     H:::::::HI::::::::IE::::::::::::::::::::E ,::::,                V:::V           2::::::::::::::::::2\nRRRRRRRR     RRRRRRR     OOOOOOOOO           UUUUUUUUU             GGGGGG   GGGGHHHHHHHHH     HHHHHHHHHIIIIIIIIIIEEEEEEEEEEEEEEEEEEEEEE ,:::,,                 VVV            22222222222222222222\n                                                                                                                                       ,:::,\n                                                                                                                                                                                           ,,,,   \n");
   Serial.println(help);
   delay(1000); //Wait for all the printing
 
@@ -171,7 +170,7 @@ void setup()
   param.tankMid = 285;
   param.linMid = 515;
   param.rotMid = rotmid;
-  param.allowedWorkTime = 30000;
+  param.allowedWorkTime = 40000;
   param.linNoseDownTarget = -30;
   param.linNoseUpTarget = 30;
   param.linkp = 10;
@@ -818,6 +817,9 @@ void gliderStateMachine(int cmd) {
             Dynamixel.moveSpeed(dyna_id, param.rotMid+param.rollover, param.rotation_speed);
           } 
           
+          analogWrite(motAPWM, 0);
+          digitalWrite(motStdby, LOW);
+          
           entry = 0;
           pumpDone = 0;
           linDone = 0;
@@ -842,7 +844,7 @@ void gliderStateMachine(int cmd) {
             param.linRate = linMassRatePID(param.linNoseDownTarget);
             analogWrite(motAPWM, param.linRate);
           }
-          else {
+          else if(!linDone) {
             moveLinMass(param.linFrontLimit, param.linRate);//sets direction then turns on
           }
         
@@ -947,6 +949,13 @@ void gliderStateMachine(int cmd) {
               analogWrite(motAPWM, param.linRate);
             }
           }
+          else {
+          if((abs(getFiltAnalog(linPos) - param.linFrontLimit)) < 20) {
+            analogWrite(motAPWM, 0);
+            digitalWrite(motStdby, LOW);
+            linDone = 1;
+            }
+          }
           
           if(pressureControlOn) {
             est_depth = 0.0423062 * (getFiltAnalog(pressureSensorPin) - 102.3);
@@ -968,6 +977,9 @@ void gliderStateMachine(int cmd) {
           t0 = millis();
           I = 0;
           moveWater(param.tankFrontLimit);//set pump direction and turn on
+          
+          analogWrite(motAPWM, 0);
+          digitalWrite(motStdby, LOW);
           
           if (circle) {
             Serial.println("Circling down");
@@ -1122,6 +1134,13 @@ void gliderStateMachine(int cmd) {
           else {
             param.linRate = linMassRatePID(param.linNoseUpTarget);
             analogWrite(motAPWM, param.linRate);
+          }
+        }
+        else {
+          if(abs(getFiltAnalog(linPos) - param.linBackLimit) < 20) {
+            analogWrite(motAPWM, 0);
+            digitalWrite(motStdby, LOW);
+            linDone = 1;
           }
         }
         
