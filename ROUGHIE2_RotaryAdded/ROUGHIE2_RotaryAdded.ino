@@ -408,6 +408,9 @@ void loop()
     else if(strcmp(arg[0], "start") == 0) {
       gliderStateMachine(GC_START);
     }
+    else if(strcmp(arg[0], "circle") == 0) {
+      gliderStateMachine(GC_CIRCLE);
+    }
     else if(strcmp(arg[0], "stop") == 0) {
       gliderStateMachine(GC_STOP);
     }
@@ -783,10 +786,14 @@ void gliderStateMachine(int cmd) {
   }
   
   if(cmd == GC_CIRCLE) {
-    enGlider = 1;
-    state = ME_NOSE_DOWN;
-    entry = 1;
-    circle = 1;
+    if(circle) {
+      Serial.println("Circle off!!!");
+      circle = 0;
+    }
+    else {
+      Serial.println("Circle on!!!");
+      circle = 1;
+    }
   }
   
   if(cmd == GC_NULL) { // continue normal state machine run
