@@ -408,9 +408,6 @@ void loop()
     else if(strcmp(arg[0], "start") == 0) {
       gliderStateMachine(GC_START);
     }
-    else if(strcmp(arg[0], "circle") == 0) {
-      gliderStateMachine(GC_CIRCLE);
-    }
     else if(strcmp(arg[0], "stop") == 0) {
       gliderStateMachine(GC_STOP);
     }
@@ -532,6 +529,9 @@ void loop()
     else if(strcmp(arg[0], "float") == 0) {
       Serial.println("FLOAT!!");
       gliderStateMachine(GC_FLOAT);
+    }
+    else if(strcmp(arg[0], "circle") == 0) {
+      gliderStateMachine(GC_CIRCLE);
     }
     else if(strcmp(arg[0], "update") == 0) {  // update parameter
       if(strcmp(arg[1], "-linpos") == 0) {
@@ -741,6 +741,9 @@ void loop()
       Serial.print("Glide cyble top: ");
       Serial.println(param.glide_cycle_top);
       
+      Serial.print("Rollover: ");
+      Serial.println(param.rollover);
+      
     }
       
     else {
@@ -766,7 +769,7 @@ void gliderStateMachine(int cmd) {
   static int state = 0;        // machine state
   static bool enGlider = 0;    // enable cycle
   static bool entry;           // if it's first time executing the current state
-  static bool circle;
+  static bool circle = 0;
   static bool pumpDone;        // If the pump is done pumping
   static bool linDone;         // If the linear mass is done moving
   static bool DoLinPID = 0;
@@ -787,12 +790,12 @@ void gliderStateMachine(int cmd) {
   
   if(cmd == GC_CIRCLE) {
     if(circle) {
-      Serial.println("Circle off!!!");
       circle = 0;
+      Serial.println("Circle on!");
     }
     else {
-      Serial.println("Circle on!!!");
       circle = 1;
+      Serial.println("Circle on!");
     }
   }
   
@@ -1699,3 +1702,4 @@ void error(char *str)
   Serial.print("error: ");
   Serial.println(str);
 }
+
