@@ -825,10 +825,9 @@ void gliderStateMachine(int cmd) {
           if(circle) {
             Serial.println("Circling down");
             Dynamixel.moveSpeed(dyna_id, param.rotMid+param.rollover, param.rotation_speed);
-          } 
+          }
           
-          analogWrite(motAPWM, 0);
-          digitalWrite(motStdby, LOW);
+          moveLinMass(param.linMid, param.linRate);
           
           entry = 0;
           pumpDone = 0;
@@ -886,6 +885,12 @@ void gliderStateMachine(int cmd) {
             linDone = 1;
           }
         }
+        }
+        else {
+          if(abs(getFiltAnalog(linPos)-param.linMid) < 20) {
+            digitalWrite(motAPWM, 0);
+            digitalWrite(motStdby, LOW);
+          }
         }
         
         if(pumpDone) {
@@ -988,8 +993,7 @@ void gliderStateMachine(int cmd) {
           I = 0;
           moveWater(param.tankFrontLimit);//set pump direction and turn on
           
-          analogWrite(motAPWM, 0);
-          digitalWrite(motStdby, LOW);
+          moveLinMass(param.linMid, param.linRate);
           
           if (circle) {
             Serial.println("Circling down");
@@ -1048,6 +1052,12 @@ void gliderStateMachine(int cmd) {
             linDone = 1;
           }
         }
+        }
+        else {
+          if(abs(getFiltAnalog(linPos)-param.linMid) < 20) {
+            digitalWrite(motAPWM, 0);
+            digitalWrite(motStdby, LOW);
+          }
         }
         
         if(pumpDone) {
@@ -1268,10 +1278,10 @@ void gliderStateMachine(int cmd) {
   if(cmd == GC_RESET) { // GC_RESET to trimming position    
     moveWater(param.tankMid);
     //turn off pump when it's time
-      while(abs(getFiltAnalog(tankLevel)-param.tankMid) > 20) {
-      }
-      digitalWrite(pumpOn, LOW);
-      Serial.println("Tank Reset");
+    while(abs(getFiltAnalog(tankLevel)-param.tankMid) > 20) {
+    }
+    digitalWrite(pumpOn, LOW);
+    Serial.println("Tank Reset");
 
     moveLinMass(param.linMid, param.linRate);
     // Turn linear mass off when it's time
