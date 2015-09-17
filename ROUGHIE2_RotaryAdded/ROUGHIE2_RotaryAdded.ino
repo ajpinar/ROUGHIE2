@@ -4,7 +4,7 @@
 #include <SD.h>
 #include <Wire.h>
 #include <SPI.h>
-#include <DynamixelSoftSerial.h>
+#include <Servo.h>
 #include <TinyGPS.h>
 
 /*
@@ -34,6 +34,8 @@
 #define GPS_tx_pin 3
 
 long lat,lon;
+
+Servo rotServo;
 
 SoftwareSerial gpsSerial(GPS_rx_pin, GPS_tx_pin); // create gps sensor connection
 TinyGPS gps; // create gps object
@@ -92,15 +94,6 @@ const int motBPWM = 3; //changed
 const int motBConf1 = 32; //changed
 const int motBConf2 = 34; //changed
 
-const int PIN_dyna_rx = 11;
-const int PIN_dyna_tx = 12;
-
-const int dyna_id = 1;
-const long int dyna_Sbaud = 57600;
-const int servo_current_limit = 10;
-
-bool torque = 1;
-
 const int pumpOn = 22; //changed
 const int pumpDir = 24; //changed
 
@@ -115,9 +108,9 @@ const int tankbacklimit = 80;
 const int tankfrontlimit = 500; //WAS 500
 
 //// ROTARY MASS LIMITS
-const int rotmid = 700;
-const int rotlowlimit = rotmid - 150;
-const int rothighlimit = rotmid + 150;
+const int rotmid = 90;
+const int rotlowlimit = rotmid - 89;
+const int rothighlimit = rotmid + 89;
 
 float I = 0;
 float Ir = 0;
@@ -132,6 +125,7 @@ int pressureSensorPin = A5;
 //int linFrontLimit = 140;
 //int linBackLimit = 890;
 int rotPos = A12;
+int rotServo_pin = 10;
 
 bool SDgo = 0;
 
@@ -184,9 +178,8 @@ void setup()
   param.number_of_glides = 3;
   param.glide_cycle_bottom = 8;
   param.glide_cycle_top = 5;
-  param.rotation_speed = 800;
   param.desiredRotationAngle = 700;
-  param.rollover = 50;
+  param.rollover = 89;
 
   gliderStateMachine(GC_BEGIN);
   gliderStateMachine(GC_STOP);
@@ -235,36 +228,12 @@ void setup()
 
   logfile.println("millis,stamp,datetime,Pressure,Pitch,Roll,DrawWire,Rot.Pos,LinMassPos,tp1,tp2,yaw,rolld,pitchd,yawd,north,east,up,estimatedDepth");    
   */
-  //setup dynamixel
-  Serial.println("Setting up servo...");
-  Dynamixel.begin(dyna_Sbaud, PIN_dyna_rx, PIN_dyna_tx);
-  Dynamixel.reset(dyna_id);
   
-  Dynamixel.readPosition(dyna_id);
-  Dynamixel.readPosition(dyna_id);
-  Dynamixel.readPosition(dyna_id);
+  // SHOULD CENTER SERVO HERE
+  Serial.println("Centering servo...");
+  rotServo.attach(rotServo_pin, 1050, 1950);
+  rotServo.write(param.rotMid); //center servo (0 is fully one direction, 180 is other direction---it assumes a 180 degree servo, but ours is actually a 90 degree)
   
-  Serial.print("Resetting servo to ");
-  Serial.print(param.desiredRotationAngle);
-  Serial.println("...");
-  Dynamixel.moveSpeed(dyna_id, param.desiredRotationAngle, param.rotation_speed);
-  uint32_t servo_reset_timer = millis();
-  while (Dynamixel.moving(dyna_id)) {
-    if((millis() - servo_reset_timer) > 5000) {
-      Serial.println("Servo stalled.");
-      break;
-    }
-  };
-  Serial.println("Done!");
-  
-  Dynamixel.torqueStatus(dyna_id, ON);
-  Serial.println("Servo set to hold shaft at current position.\n");
-  
-  //this supposedly limits the amount of current hte servo can draw
-  //for now lets keep this since we're using a small linear voltage regulator
-  Dynamixel.setPunch(dyna_id, servo_current_limit);
-  
-  Serial.println("Done with setup");
 }
 
 void loop()
@@ -450,81 +419,19 @@ void loop()
       logfile.close();
       Serial.println("Logging stopped and log file was closed");
     }
-   else if(strcmp(arg[0], "servovoltage") == 0) {
-      Serial.println("Reading battery voltage...");
-      Serial.print("Battery voltage: ");
-      Serial.println(Dynamixel.readVoltage(dyna_id)/10.0);
-    }
-    else if(strcmp(arg[0], "rotspeed") == 0) {
-      Serial.println("Changing rotation speed...");
-      param.rotation_speed = atoi(arg[1]);
-      if (param.rotation_speed < 0) {
-        param.rotation_speed = 0;
-      }
-      else if (param.rotation_speed > 1023) {
-        param.rotation_speed = 1023;
-      }
-      Serial.print("Rotation speed changed to: ");
-      Serial.println(param.rotation_speed);
-    }
     else if(strcmp(arg[0], "turnto") == 0) {
       Serial.println("Moving to desired turn angle...");
       param.desiredRotationAngle = atoi(arg[1]);
       if (param.desiredRotationAngle < 0) {
         param.desiredRotationAngle = 0;
       }
-      else if (param.desiredRotationAngle > 1023) {
-        param.desiredRotationAngle = 1023;
+      else if (param.desiredRotationAngle > 179) {
+        param.desiredRotationAngle = 179;
       }
-      Dynamixel.moveSpeed(dyna_id, param.desiredRotationAngle, param.rotation_speed);
-      //while (Dynamixel.moving(dyna_id)) { };
-      Serial.print("Moved to: ");
-      Serial.print(Dynamixel.readPosition(dyna_id));
-      Serial.println(" maybe .");
-      torque = 1; // Dynamixel automatically keeps torque on shaft after it moves
     }
     else if(strcmp(arg[0], "servoparameters") == 0) {
-      Serial.print("Speed: ");
-      Serial.println(param.rotation_speed);
       Serial.print("Desired angle: ");
       Serial.println(param.desiredRotationAngle);
-    }
-    else if(strcmp(arg[0], "current_servo_position") == 0) {
-      Serial.print("Current Position: ");
-      Dynamixel.readPosition(dyna_id);
-      Serial.println(Dynamixel.readPosition(dyna_id));
-    }
-    
-    else if(strcmp(arg[0], "toggle_hold") == 0) {
-      torque = !torque;
-      if (torque) {
-        Dynamixel.torqueStatus(dyna_id, ON);
-        Serial.println("Servo set to hold position.");
-      }
-      else if (!torque) {
-        Dynamixel.torqueStatus(dyna_id, OFF);
-        Serial.println("Servo set to spin freely.");
-      }
-        
-    }
-    else if(strcmp(arg[0], "resetservocomm") == 0) {
-      Serial.println("Resetting servo communication...");
-      Dynamixel.begin(dyna_Sbaud, PIN_dyna_rx, PIN_dyna_tx);
-      Dynamixel.reset(dyna_id);
-      Serial.println("Centering servo...");
-      param.desiredRotationAngle = 512;
-      Serial.print("Resetting servo to ");
-      Serial.print(param.desiredRotationAngle);
-      Serial.println("...");
-      Dynamixel.moveSpeed(dyna_id, param.desiredRotationAngle, param.rotation_speed);
-      uint32_t servo_reset_timer = millis();
-      while (Dynamixel.moving(dyna_id)) {
-        if((millis() - servo_reset_timer) > 5000) {
-          Serial.println("Servo stalled.");
-          break;
-        }
-      }
-        Serial.println("Done!");
     }
     else if(strcmp(arg[0], "float") == 0) {
       Serial.println("FLOAT!!");
@@ -824,7 +731,7 @@ void gliderStateMachine(int cmd) {
           
           if(circle) {
             Serial.println("Circling down");
-            Dynamixel.moveSpeed(dyna_id, param.rotMid+param.rollover, param.rotation_speed);
+            rotServo.write(param.rotMid+param.rollover);
           }
           
           moveLinMass(param.linMid, param.linRate);
@@ -997,7 +904,7 @@ void gliderStateMachine(int cmd) {
           
           if (circle) {
             Serial.println("Circling down");
-            Dynamixel.moveSpeed(dyna_id, param.rotMid-param.rollover, param.rotation_speed);
+            rotServo.write(param.rotMid-param.rollover);
           }
           
           entry = 0;
