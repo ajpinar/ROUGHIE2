@@ -41,6 +41,7 @@ File logfile;     // FILE OBJECT FOR SD DATA LOGGING.
 // DEFINE THE INTERVAL AT WHICH TO WRITE TO THE SD CARD AND INITIALIZE THE syncTime VARIABLE (USED FOR SD CARD)
 #define SYNC_INTERVAL 500
 uint32_t syncTime = 0;
+char* name_of_file = "LOGGER00.csv";
 
 // INITIALIZE BOLLEAN FOR ENABLING SD LOGGING
 bool SDgo = 0;
@@ -88,7 +89,8 @@ const int pumpDir = 24;     // PUMP DIRECTION PIN
 int tankLevel = A8;         // DRAW WIRE SENSOR FOR BALLAST TANK POSITION FEEDBACK
 int linPos = A9;            // DRAW WIRE SENSOR FOR LINEAR MASS POSITION FEEDBACK
 int pressureSensorPin = A5; // PRESSURE SENSOR FOR DEPTH FEEDBACK
-int rotServo_pin = 10;      // ROTARY SERVO PIN
+int rotServo_pin = 14;      // ROTARY SERVO PIN
+int ecopuck_pin = A15;      // ECOPUCK INPUT
 
 // DEFINE LIMITS FOR THE 3 MOVING PIECES
 // LINEAR MASS LIMITS
@@ -102,9 +104,12 @@ const int tankbacklimit = 80;   // BACK LIMIT FOR BALLAST TANK
 const int tankfrontlimit = 500; // FRONT LIMIT FOR BALLAST TANK
 
 // ROTARY MASS LIMITS
-const int rotmid = 90;                // MIDDLE POSITION FOR ROTARY MASS
-const int rotlowlimit = rotmid - 89;  // LOW LIMIT FOR ROTARY MASS
-const int rothighlimit = rotmid + 89; // HIGH LIMIT FOR ROTARY MASS
+const int rotmid = 0;                 // MIDDLE POSITION FOR ROTARY MASS
+const int rotlowlimit = rotmid - 44;  // LOW LIMIT FOR ROTARY MASS
+const int rothighlimit = rotmid + 44; // HIGH LIMIT FOR ROTARY MASS
+const int rotPWMmin = 65;             // ROTARY LOW PWM LIMIT (FOUND VIA BENCHTEST)
+const int rotPWMmax = 170;            // ROTARY HIGH PWM LIMIT (FOUND VIA BENCHTEST)
+
 
 // DEFAULT PARAMETER VALUES
 const int linRate_default = 200;       // DEFAULT RATE FOR LINEAR MASS MOTOR
@@ -145,7 +150,7 @@ char *help[] = {
                 "pressurecontrol - toggles pressure control on/off",
                 "turnto <position> - rotates the rotary servo to <position> (90 is center)",
                 "float - commands glider to float with linear mass in front position",
-                "update -<parameter> <newValue> - updates <parameter> to <newValue> (don't forget the -)",
+                "update - <parameter> <newValue> - updates <parameter> to <newValue> (don't forget the -)",
                 "Parameters available for updating are:",
                 "\trollover - If a circle path is enabled, this is the amount the rotary servo will turn in each direction",
                 "\tglidebottom - If using pressure control, this is the depth in feet of the glide top",
@@ -214,9 +219,14 @@ void setup() {
   // INITIALIZE ALL IMPORTANT PINS VIA GC_BEGIN, THEN TELL GLIDER TO IDLE VIA GC_STOP
   gliderStateMachine(GC_BEGIN);
   gliderStateMachine(GC_STOP);
-  
+
   // INITIALIZE SD CARD
-  if(!initSD()) {
+  Serial.println("Initializing SD card...");
+  // make sure that the default chip select pin is set to
+  // output, even if you don't use it:
+  pinMode(10, OUTPUT);
+  // see if the card is present and can be initialized:
+  if (!SD.begin(10, 11, 12, 13)) {
     error("Card failed, or not present");
   }
   else {
@@ -225,8 +235,9 @@ void setup() {
   
   // CENTER THE ROTARY SERVO
   Serial.println("Centering servo...");
-  rotServo.attach(rotServo_pin, 1050, 1950);  // THE HI TEC SERVO HAS A MIN & MAX PULSE WIDTH OF 1050us & 1950us, respectively.
-  rotServo.write(param.rotMid);
+  rotServo.attach(rotServo_pin, 1100, 1900);  // THE HI TEC SERVO HAS A MIN & MAX PULSE WIDTH OF 1100us & 1900us, respectively.
+  rotServo.write( map( param.rotMid, -45, 45, rotPWMmin, rotPWMmax ) );
+  Serial.println("Setup done!");
   
 } // END OF SETUP
 
@@ -246,7 +257,90 @@ void loop() {
   
   // IF DATALOGGING IS ENABLED, LOG DATA
   if(SDgo) {
-    writeSD( m, now );
+    
+    // OPEN FILE
+    logfile = SD.open(name_of_file, FILE_WRITE);
+  
+    /*
+    //millis
+    logfile.print(m);           // milliseconds since start
+    logfile.print(", "); 
+    
+    now = rtc.now();
+    // stamp
+    // log time
+    logfile.print(now.unixtime()); // seconds since 1/1/1970
+    logfile.print(", ");
+    logfile.print('"');
+    //datetime
+    logfile.print(now.year(), DEC);
+    logfile.print("/");
+    logfile.print(now.month(), DEC);
+    logfile.print("/");
+    logfile.print(now.day(), DEC);
+    logfile.print(" ");
+    logfile.print(now.hour(), DEC);
+    logfile.print(":");
+    logfile.print(now.minute(), DEC);
+    logfile.print(":");
+    logfile.print(now.second(), DEC);
+    logfile.print('"');
+    */
+    // logging data 
+    //pressure   
+    logfile.print(getFiltAnalog(pressureSensorPin));
+    logfile.print(", ");    
+    //pitch
+    logfile.print(-um7.roll);// change the name if neccessary
+    logfile.print(", ");
+    //roll
+    logfile.print(-um7.pitch);
+    logfile.print(", ");
+    //water tank position    
+    logfile.print(getFiltAnalog(tankLevel));
+    logfile.print(", ");
+    //linear mass position
+    logfile.print(getFiltAnalog(linPos));
+    logfile.print(", ");
+    //yaw
+    logfile.print(um7.yaw);
+    logfile.print(", ");
+    //rolld
+    logfile.print(um7.rolld);
+    logfile.print(", ");
+    //pitchd
+    logfile.print(um7.pitchd);
+    logfile.print(", ");
+    //yawd
+    logfile.print(um7.yawd);
+    logfile.print(", ");
+    //north
+    logfile.print(um7.north);
+    logfile.print(", ");
+    //east
+    logfile.print(um7.east);
+    logfile.print(", ");
+    //up
+    logfile.print(um7.up);
+    logfile.print(", ");
+    //estimated depth
+    logfile.print(0.0423062 * (getFiltAnalog(pressureSensorPin) - 102.3));
+    logfile.print(", ");
+    //ecopuck
+    logfile.print( getFiltAnalog(ecopuck_pin) );
+    logfile.println("");
+   
+    // Now we write data to disk! Don't sync too often - requires 2048 bytes of I/O to SD card
+    // which uses a bunch of power and takes time
+    if ((millis() - syncTime) > SYNC_INTERVAL) {
+      syncTime = millis();
+  
+      // updating FAT!
+      logfile.flush();
+    }
+    
+    logfile.close();
+    
   }
   
   // CLEAR IMU POSE DATA FLAG
@@ -282,10 +376,15 @@ void loop() {
     }
     
     else if(strcmp(arg[0], "sdstart") == 0) {
-      SDfile();
+      // CREATE FILE ON SD CARD  
+      createSDfile(name_of_file);
+      SDgo = 1;
     }
     
     else if(strcmp(arg[0], "sdstop") == 0) {
+      
+      // OPEN FILE
+      logfile = SD.open(name_of_file, FILE_WRITE);
       logfile.println("");
       logfile.println("");
       logfile.print("Notes,");
@@ -298,13 +397,13 @@ void loop() {
     else if(strcmp(arg[0], "turnto") == 0) {
       Serial.println("Moving to desired turn angle...");
       param.desiredRotaryPosition = atoi(arg[1]);
-      if (param.desiredRotaryPosition < 0) {
-        param.desiredRotaryPosition = 0;
+      if (param.desiredRotaryPosition < -44) {
+        param.desiredRotaryPosition = -44;
       }
-      else if (param.desiredRotaryPosition > 179) {
-        param.desiredRotaryPosition = 179;
+      else if (param.desiredRotaryPosition > 44) {
+        param.desiredRotaryPosition = 44;
       }
-      rotServo.write(param.desiredRotaryPosition);
+      rotServo.write( map( param.desiredRotaryPosition, -45, 45, rotPWMmin, rotPWMmax ) );
     }
     
     else if(strcmp(arg[0], "servoparameters") == 0) {
@@ -323,6 +422,51 @@ void loop() {
     
     else if(strcmp(arg[0], "pressurecontrol") == 0) {
       gliderStateMachine(GC_PRESSURE_CONTROL);
+    }
+    
+    else if(strcmp(arg[0], "gimme") == 0) {
+      
+      if(strcmp(arg[1], "roll") == 0) {
+        Serial.print("Roll: ");
+        Serial.println(-um7.roll);
+      }
+      
+      if(strcmp(arg[1], "pitch") == 0) {
+        Serial.print("Pitch: ");
+        Serial.println(-um7.pitch);
+      }
+      
+      if(strcmp(arg[1], "tank") == 0) {
+        Serial.print("Tank level: ");
+        Serial.println(getFiltAnalog(tankLevel));
+      }
+      
+      if(strcmp(arg[1], "linear") == 0) {
+        Serial.print("Linear mass position: ");
+        Serial.println(getFiltAnalog(linPos));
+      }
+      
+      if(strcmp(arg[1], "gps") == 0) {
+        Serial.print("North: ");
+        Serial.println(um7.north);
+        Serial.print("East: ");
+        Serial.println(um7.east);
+        Serial.print("Up: ");
+        Serial.println(um7.up);
+      }
+      
+      if(strcmp(arg[1], "ecopuck") == 0) {
+        Serial.print("Ecopuck voltage: ");
+        Serial.println(getFiltAnalog(ecopuck_pin));
+      }
+      
+      if(strcmp(arg[1], "pressure") == 0) {
+        Serial.print("Pressure voltage: ");
+        Serial.println(getFiltAnalog(pressureSensorPin));
+        Serial.print("Estimated depth (ft): ");
+        Serial.println(0.0423062 * (getFiltAnalog(pressureSensorPin) - 102.3));
+      }
+      
     }
     
     else if(strcmp(arg[0], "update") == 0) {  // update parameter
@@ -646,7 +790,8 @@ void gliderStateMachine(int cmd) {
           
           if(circle) {
             Serial.println("Circling down");
-            rotServo.write(param.rotMid+param.rollover);
+            rotServo.write( map( param.rotMid + param.rollover, -45, 45, rotPWMmin, rotPWMmax ) );
+            
           }
           
           moveLinMass(param.linMid, param.linRate);
@@ -807,7 +952,7 @@ void gliderStateMachine(int cmd) {
           
           if (circle) {
             Serial.println("Circling down");
-            rotServo.write(param.rotMid-param.rollover);
+            rotServo.write( map( param.rotMid - param.rollover, -45, 45, rotPWMmin, rotPWMmax ) );
           }
           
           entry = 0;
@@ -1048,109 +1193,11 @@ void gliderStateMachine(int cmd) {
 void pumpOff() {
   digitalWrite(pumpOn, LOW);
 }
-
-boolean initSD() {
-  Serial.print("Initializing SD card...");
-  // make sure that the default chip select pin is set to
-  // output, even if you don't use it:
-  pinMode(10, OUTPUT);
-  
-  // see if the card is present and can be initialized:
-  if (!SD.begin(10, 11, 12, 13)) {
-    return 0;
-  }
-  else {
-    return 1;
-  }
- }
  
 void error(char *str)
 {
   Serial.print("error: ");
   Serial.println(str);
-}
-
-void writeSD( uint32_t m, DateTime now )
-{
-  //millis
-  logfile.print(m);           // milliseconds since start
-  logfile.print(", "); 
-  
-  now = rtc.now();
-  // stamp
-  // log time
-  logfile.print(now.unixtime()); // seconds since 1/1/1970
-  logfile.print(", ");
-  logfile.print('"');
-  //datetime
-  logfile.print(now.year(), DEC);
-  logfile.print("/");
-  logfile.print(now.month(), DEC);
-  logfile.print("/");
-  logfile.print(now.day(), DEC);
-  logfile.print(" ");
-  logfile.print(now.hour(), DEC);
-  logfile.print(":");
-  logfile.print(now.minute(), DEC);
-  logfile.print(":");
-  logfile.print(now.second(), DEC);
-  logfile.print('"');
-
-  // logging data 
-  //pressure
-  logfile.print(", ");    
-  logfile.print(getFiltAnalog(pressureSensorPin));
-  logfile.print(", ");    
-  //pitch
-  logfile.print(-um7.roll);// change the name if neccessary
-  logfile.print(", ");
-  //roll
-  logfile.print(-um7.pitch);
-  logfile.print(", ");
-  //water tank position    
-  logfile.print(getFiltAnalog(tankLevel));
-  logfile.print(", ");
-  //linear mass position
-  logfile.print(getFiltAnalog(linPos));
-  logfile.print(", ");
-  //tp1
-  logfile.print(um7.t_p1);
-  logfile.print(", ");
-  //tp2
-  logfile.print(um7.t_p2);
-  logfile.print(", ");
-  //yaw
-  logfile.print(um7.yaw);
-  logfile.print(", ");
-  //rolld
-  logfile.print(um7.rolld);
-  logfile.print(", ");
-  //pitchd
-  logfile.print(um7.pitchd);
-  logfile.print(", ");
-  //yawd
-  logfile.print(um7.yawd);
-  logfile.print(", ");
-  //north
-  logfile.print(um7.north);
-  logfile.print(", ");
-  //east
-  logfile.print(um7.east);
-  logfile.print(", ");
-  //up
-  logfile.print(um7.up);
-  logfile.print(", ");
-  //estimated depth
-  logfile.print(0.0423062 * (getFiltAnalog(pressureSensorPin) - 102.3));
-  logfile.println("");
- 
-  // Now we write data to disk! Don't sync too often - requires 2048 bytes of I/O to SD card
-  // which uses a bunch of power and takes time
-  if ((millis() - syncTime) < SYNC_INTERVAL) {return;}
-  syncTime = millis();
-
-  // updating FAT!
-  logfile.flush();
 }
 
 int getFiltAnalog(int APIN)
@@ -1161,38 +1208,6 @@ int getFiltAnalog(int APIN)
   }
   val = val/10;
   return val;
-}
-
-void SDfile()
-{
-  char filename[] = "LOGGER00.csv";
-  for (uint8_t i = 0; i < 100; i++) {
-    filename[6] = i/10 + '0';
-    filename[7] = i%10 + '0';
-    if (! SD.exists(filename)) {
-      // only open a new file if it doesn't exist
-      logfile = SD.open(filename, FILE_WRITE);
-      
-      if (! logfile) {
-        error("couldnt create file");
-      }
-
-      Serial.print("Logging to: ");
-      Serial.println(filename);
-  
-      // connect to RTC
-      Wire.begin();  
-      if (!rtc.begin()) {
-        logfile.println("RTC failed");
-      }
-  
-      logfile.println("millis,stamp,datetime,Pressure,Pitch,Roll,DrawWire,LinMassPos,tp1,tp2,yaw,rolld,pitchd,yawd,north,east,up,estdepth");    
-      SDgo = 1;
-
-      break;  // leave the loop!
-    }
-  }
-  return;
 }
 
 void moveWater(int dest) {
@@ -1320,4 +1335,37 @@ float linMassRatePID(int dest) {
   }
   digitalWrite(motStdby, HIGH);//turn on
   return rate;
+}
+
+void createSDfile(char* name_of_file) {
+  char filename[] = "LOGGER00.csv";
+  for (uint8_t i = 0; i < 100; i++) {
+    filename[6] = i/10 + '0';
+    filename[7] = i%10 + '0';
+    if (! SD.exists(filename)) {
+      // only open a new file if it doesn't exist
+      File logfile = SD.open(filename, FILE_WRITE);
+      
+      if (! logfile) {
+        error("couldnt create file");
+      }
+
+      Serial.print("Logging to: ");
+      Serial.println(filename);
+  
+      // connect to RTC
+      Wire.begin();  
+      if (!rtc.begin()) {
+        logfile.println("RTC failed");
+      }
+  
+      //logfile.println("millis,stamp,datetime,Pressure,Pitch,Roll,BallastTank,LinMassPos,tp1,tp2,yaw,rolld,pitchd,yawd,north,east,up,estdepth,ECOPUCK");    
+      logfile.println("Pressure,Pitch,Roll,BallastTank,LinMassPos,yaw,rolld,pitchd,yawd,north,east,up,estdepth,ECOPUCK");
+      logfile.close();
+      //SDgo = 0;
+      break;  // leave the loop!
+    }
+  }
+  strcpy(name_of_file, filename);
+  //return filename;
 }
