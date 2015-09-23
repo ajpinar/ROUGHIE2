@@ -136,7 +136,7 @@ float error_prev = 0;
 float error_prev_r = 0;
 
 // DEFINE HELP MENU
-int helpLength = 37;
+int helpLength = 46;
 char *help[] = {
                 "-----------ROUGHIE HELP MENU-----------",
                 "params - shows the current parameters and acceptable ranges",
@@ -174,6 +174,15 @@ char *help[] = {
                 "\tlinkp - Linear mass PID proportional gain",
                 "\tlinki - Linear mass PID integral gain",
                 "\tlinkd - Linear mass PID derivative gain",
+                "gimme <something> - prints the current reading of <something>",
+                "Things to look at are:",
+                "\troll",
+                "\tpitch",
+                "\ttank",
+                "\tlinear",
+                "\tgps",
+                "\tecopuck",
+                "\tpressure",
                 "---------------------------------------"
                 };
 
