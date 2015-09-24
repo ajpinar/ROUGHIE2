@@ -35,7 +35,7 @@
 // CREATE OBJECTS
 Servo rotServo;   // SERVO OBJECT FOR ROTARY SERVO (HI-TEC, PWM CONTROLLED)
 UM7_BIN um7;      // IMU OBJECT
-RTC_DS1307 rtc;   // RTC OBJECT, FOR SD DATA LOGGING. (THE RTC COMPONENT MAY NOT BE WORKING 9/17/15)
+RTC_DS1307 rtc;   // RTC OBJECT, FOR SD DATA LOGGING. (THE RTC COMPONENT WON'T WORK BECAUSE WE DON'T HAVE I2C PLUGGED IN)
 File logfile;     // FILE OBJECT FOR SD DATA LOGGING.
 
 // DEFINE THE INTERVAL AT WHICH TO WRITE TO THE SD CARD AND INITIALIZE THE syncTime VARIABLE (USED FOR SD CARD)
@@ -136,7 +136,7 @@ float error_prev = 0;
 float error_prev_r = 0;
 
 // DEFINE HELP MENU
-int helpLength = 46;
+int helpLength = 47;
 char *help[] = {
                 "-----------ROUGHIE HELP MENU-----------",
                 "params - shows the current parameters and acceptable ranges",
@@ -150,6 +150,7 @@ char *help[] = {
                 "pressurecontrol - toggles pressure control on/off",
                 "turnto <position> - rotates the rotary servo to <position> (90 is center)",
                 "float - commands glider to float with linear mass in front position",
+                "pressurecal - calibrates pressure sensor (glider must be on or above surface of water)",
                 "update - <parameter> <newValue> - updates <parameter> to <newValue> (don't forget the -)",
                 "Parameters available for updating are:",
                 "\trollover - If a circle path is enabled, this is the amount the rotary servo will turn in each direction",
@@ -258,9 +259,9 @@ void loop() {
   gliderStateMachine(GC_NULL);
   
   int ret = um7.refresh();  // refresh nav data
-  if(ret >= 3) { // unexpected error detected
-    Serial.print("<"); Serial.print(ret); Serial.println(">");
-  }
+  //if(ret >= 3 && ret < 6) { // unexpected error detected
+  //  Serial.print("<"); Serial.print(ret); Serial.println(">");
+  //}
   
   uint32_t m = millis();  // UPDATE m, THE # OF MILLISECONDS SINCE STARTING
   
@@ -431,6 +432,11 @@ void loop() {
     
     else if(strcmp(arg[0], "pressurecontrol") == 0) {
       gliderStateMachine(GC_PRESSURE_CONTROL);
+    }
+    
+    else if(strcmp(arg[0], "pressurecal") == 0) {
+      // CALIBRATE PRESSURE SENSOR @ 0 DEPTH
+      Serial.println("You haven't taught me how to do this yet!");
     }
     
     else if(strcmp(arg[0], "gimme") == 0) {
