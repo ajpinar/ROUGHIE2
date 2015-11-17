@@ -86,11 +86,6 @@ const int motBConf2 = 34;   // CONFIGURATION PIN 2 FOR 2ND MOTOR (UNUSED)
 const int pumpOn = 22;      // PUMP ON/OFF PIN
 const int pumpDir = 24;     // PUMP DIRECTION PIN
 
-// idling, 29V  32.58mA   944.93mW
-// on,     28V  2981.43mA 83479.96mW (both things on)
-//         29V  81.46mA   2362.33mW (lin motor on only)
-//         28V  2134.25mA 61127.40mW (pump only)
-
 int tankLevel = A8;         // DRAW WIRE SENSOR FOR BALLAST TANK POSITION FEEDBACK
 int linPos = A9;            // DRAW WIRE SENSOR FOR LINEAR MASS POSITION FEEDBACK
 int pressureSensorPin = A11; // PRESSURE SENSOR FOR DEPTH FEEDBACK
@@ -102,14 +97,14 @@ int Vin_readback = A13;     // Battery voltage
 
 // DEFINE LIMITS FOR THE 3 MOVING PIECES
 // LINEAR MASS LIMITS
-const int linmid = 445;        // MIDDLE POSITION FOR LINEAR MASS
-const int linfrontlimit = 200; // FRONT LIMIT FOR LINEAR MASS
-const int linbacklimit = 690;  // BACK LIMIT FOR LINEAR MASS
+const int linmid = 425;        // MIDDLE POSITION FOR LINEAR MASS
+const int linfrontlimit = 250; // FRONT LIMIT FOR LINEAR MASS
+const int linbacklimit = 600;  // BACK LIMIT FOR LINEAR MASS
 
 // WATER TANK LIMITS
-const int tankmid = 262;        // MIDDLE POSITION FOR BALLAST TANK
-const int tankbacklimit = 50;   // BACK LIMIT FOR BALLAST TANK
-const int tankfrontlimit = 475; // FRONT LIMIT FOR BALLAST TANK
+const int tankmid = 270;        // MIDDLE POSITION FOR BALLAST TANK
+const int tankbacklimit = 80;   // BACK LIMIT FOR BALLAST TANK
+const int tankfrontlimit = 500; // FRONT LIMIT FOR BALLAST TANK
 
 // ROTARY MASS LIMITS
 const int rotmid = 0;                 // MIDDLE POSITION FOR ROTARY MASS
@@ -133,7 +128,7 @@ const int number_of_glides_default = 3;
 const float glide_cycle_bottom_default = 3;
 const float glide_cycle_top_default = 5;
 const int desiredRotaryPosition_default = 90;
-const int rollover_default = 89;
+const int rollover_default = 45;
 
 // VARIABLES FOR LINEAR MASS PID CONTROLLER
 float I = 0;
@@ -142,6 +137,10 @@ float error_act = 0;
 float error_act_r = 0;
 float error_prev = 0;
 float error_prev_r = 0;
+
+// PRESSURE SENSOR PARAMETERS
+double pressure_m = 0.0423062;
+double pressure_b = 102.3;
 
 // DEFINE HELP MENU
 char *help[] = {
@@ -204,7 +203,7 @@ void setup() {
   Serial.setTimeout(10);
   
   // SHOW THE VERSION OF THE CODE
-  Serial.println("Version 9.17.2015_ROUGHIE2");
+  Serial.println("Version 10.30.2015_ROUGHIE #2");
   
   // PRINT THE HELP MENU
   printHelp();
@@ -341,10 +340,13 @@ void loop() {
     logfile.print(um7.up);
     logfile.print(", ");
     //estimated depth
-    logfile.print(0.0423062 * (getFiltAnalog(pressureSensorPin) - 102.3));
+    logfile.print(pressure_m * (getFiltAnalog(pressureSensorPin) - pressure_b));
     logfile.print(", ");
-    //ecopuck
-    logfile.print( getFiltAnalog(ecopuck_pin) );
+    //Vin
+    logfile.print( getFiltAnalog(Vin_readback) );
+    logfile.print(", ");
+    //Iin
+    logfile.print( getFiltAnalog(Iin_readback) );
     logfile.println("");
    
     // Now we write data to disk! Don't sync too often - requires 2048 bytes of I/O to SD card
@@ -442,8 +444,8 @@ void loop() {
     }
     
     else if(strcmp(arg[0], "pressurecal") == 0) {
-      // CALIBRATE PRESSURE SENSOR @ 0 DEPTH
-      Serial.println("You haven't taught me how to do this yet!");
+      // CALIBRATE PRESSURE SENSOR @ 0 DEPTH THIS HAS NOT BEEN VERIFIED!
+      pressure_b = pressure_m * getFiltAnalog(pressureSensorPin);
     }
     
     else if(strcmp(arg[0], "gimme") == 0) {
@@ -504,7 +506,7 @@ void loop() {
         Serial.print("Pressure voltage: ");
         Serial.println(getFiltAnalog(pressureSensorPin));
         Serial.print("Estimated depth (ft): ");
-        Serial.println(0.0423062 * (getFiltAnalog(pressureSensorPin) - 102.3));
+        Serial.println(pressure_m * (getFiltAnalog(pressureSensorPin) - pressure_b));
       }
       
     }
@@ -735,7 +737,7 @@ void gliderStateMachine(int cmd) {
   if(cmd == GC_CIRCLE) {
     if(circle) {
       circle = 0;
-      Serial.println("Circle on!");
+      Serial.println("Circle off!");
     }
     else {
       circle = 1;
@@ -909,7 +911,7 @@ void gliderStateMachine(int cmd) {
         }
         
         if(pressureControlOn) {
-            est_depth = 0.0423062 * (getFiltAnalog(pressureSensorPin) - 102.3);
+            est_depth = pressure_m * (getFiltAnalog(pressureSensorPin) - pressure_b);
             if(est_depth >= param.glide_cycle_bottom) {
               digitalWrite(pumpOn, LOW); // turn pump off
               state = ME_NOSE_UP;
@@ -968,7 +970,7 @@ void gliderStateMachine(int cmd) {
           }
           
           if(pressureControlOn) {
-            est_depth = 0.0423062 * (getFiltAnalog(pressureSensorPin) - 102.3);
+            est_depth = pressure_m * (getFiltAnalog(pressureSensorPin) - pressure_b);
             if(est_depth >= param.glide_cycle_bottom) {
               state = ME_NOSE_UP;
               entry = 1;
@@ -1066,7 +1068,7 @@ void gliderStateMachine(int cmd) {
         }
         
         if(pressureControlOn) {
-          est_depth = 0.0423062 * (getFiltAnalog(pressureSensorPin) - 102.3);
+          est_depth = pressure_m * (getFiltAnalog(pressureSensorPin) - pressure_b);
           if(est_depth <= param.glide_cycle_top) {
             glide_cycles_completed += 1;
             Serial.print(glide_cycles_completed);
@@ -1150,7 +1152,7 @@ void gliderStateMachine(int cmd) {
         }
         
         if(pressureControlOn) {
-          est_depth = 0.0423062 * (getFiltAnalog(pressureSensorPin) - 102.3);
+          est_depth = pressure_m * (getFiltAnalog(pressureSensorPin) - pressure_b);
           if(est_depth <= param.glide_cycle_top) {
             glide_cycles_completed += 1;
             Serial.print(glide_cycles_completed);
@@ -1400,7 +1402,7 @@ void createSDfile(char* name_of_file) {
       }
   
       //logfile.println("millis,stamp,datetime,Pressure,Pitch,Roll,BallastTank,LinMassPos,tp1,tp2,yaw,rolld,pitchd,yawd,north,east,up,estdepth,ECOPUCK");    
-      logfile.println("ms,Pressure,Pitch,Roll,BallastTank,LinMassPos,yaw,rolld,pitchd,yawd,north,east,up,estdepth,ECOPUCK");
+      logfile.println("ms,Pressure,Pitch,Roll,BallastTank,LinMassPos,yaw,rolld,pitchd,yawd,north,east,up,estdepth,Vin,Iin");
       logfile.close();
       //SDgo = 0;
       break;  // leave the loop!
