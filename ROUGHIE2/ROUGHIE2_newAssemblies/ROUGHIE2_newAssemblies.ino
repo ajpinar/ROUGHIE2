@@ -1356,7 +1356,7 @@ float linMassRatePID(int dest) {
   
   error_prev = error_act;
 //  error_act = dest - currentPitch;
-  error_act = dest - um7.roll;
+  error_act = dest - um7.pitch;
   P = error_act;
   I = I + error_prev;
   D = um7.pitchd;
@@ -1402,7 +1402,7 @@ void createSDfile(char* name_of_file) {
       }
   
       //logfile.println("millis,stamp,datetime,Pressure,Pitch,Roll,BallastTank,LinMassPos,tp1,tp2,yaw,rolld,pitchd,yawd,north,east,up,estdepth,ECOPUCK");    
-      logfile.println("ms,Pressure,Pitch,Roll,BallastTank,LinMassPos,yaw,rolld,pitchd,yawd,north,east,up,estdepth,Vin,Iin");
+      logfile.println("ms,Pressure,Roll,Pitch,BallastTank,LinMassPos,yaw,rolld,pitchd,yawd,north,east,up,estdepth,Vin,Iin");
       logfile.close();
       //SDgo = 0;
       break;  // leave the loop!
