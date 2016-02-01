@@ -1,0 +1,10 @@
+INS Solution:
+  YPR.Yaw:                 +49.76
+  YPR.Pitch:                +6.24
+  YPR.Roll:                 +4.32
+  LLA.Latitude:             +0.00
+  LLA.Longitude:            +0.00
+  LLA.Altitude:             +0.00
+  Velocity.North:           +0.00
+  Velocity.East:            +0.00
+  Velocity.Down:            +0.00

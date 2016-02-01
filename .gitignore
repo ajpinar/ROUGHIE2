@@ -1,0 +1,12 @@
+
+# directories
+vnccpplib-0.3.2/bin/
+vnccpplib-0.3.2/examples/
+vnccpplib-0.3.2/html_help/
+
+# file extension
+*.o
+*.so
+*.exe
+*.dll
+
