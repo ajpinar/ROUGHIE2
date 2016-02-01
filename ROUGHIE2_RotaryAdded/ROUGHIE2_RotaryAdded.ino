@@ -4,6 +4,8 @@
 #include <SD.h>
 #include <Wire.h>
 #include <SPI.h>
+#include <Servo.h>
+#include <TinyGPS.h>
 
 /*
   SPI header of UM7 goes to Arduino (Vin, gnd, tx, rx)
@@ -18,12 +20,25 @@
 #define GC_LINEAR 6
 #define GC_ROTARY 7
 #define GC_PRESSURE_CONTROL 8
+#define GC_FLOAT 9
+#define GC_CIRCLE 10
 
 #define ME_NOSE_DOWN 0
 #define ME_GLIDE_DOWN 1
 #define ME_NOSE_UP 2
 #define ME_GLIDE_UP 3
 #define ME_PAUSE 5
+#define ME_FLOAT 6
+
+#define GPS_rx_pin 2
+#define GPS_tx_pin 3
+
+long lat,lon;
+
+Servo rotServo;
+
+SoftwareSerial gpsSerial(GPS_rx_pin, GPS_tx_pin); // create gps sensor connection
+TinyGPS gps; // create gps object
 
 #define SYNC_INTERVAL 500
 uint32_t syncTime = 0;
@@ -44,12 +59,12 @@ struct param_t {
   int tankFrontLimit;
   int rotLowLimit;
   int rotHighLimit;
-  int desTime;
-  int riseTime;
+  unsigned int desTime;
+  unsigned int riseTime;
   int tankMid;
   int linMid;
   int rotMid;
-  int allowedWorkTime;
+  unsigned int allowedWorkTime;
   float linkp;
   float linki;
   float linkd;
@@ -64,6 +79,9 @@ struct param_t {
   int number_of_glides;
   float glide_cycle_bottom; //depth of bottom of glide cycle (ft)
   float glide_cycle_top;    //depth of top of glide cycle (ft)
+  int rotation_speed;
+  int desiredRotationAngle;
+  int rollover;
 } 
 param;
 // linpos 850 rotpos 680 tankpos 400
@@ -80,9 +98,9 @@ const int pumpOn = 22; //changed
 const int pumpDir = 24; //changed
 
 //// LINEAR MASS LIMITS
-const int linmid = 525;
+const int linmid = 475;
 const int linfrontlimit = 300;
-const int linbacklimit = 700;
+const int linbacklimit = 650;
 
 //// WATER TANK LIMITS
 const int tankmid = 270;
@@ -90,9 +108,9 @@ const int tankbacklimit = 80;
 const int tankfrontlimit = 500; //WAS 500
 
 //// ROTARY MASS LIMITS
-const int rotmid = 700;
-const int rotlowlimit = rotmid - 150;
-const int rothighlimit = rotmid + 150;
+const int rotmid = 90;
+const int rotlowlimit = rotmid - 89;
+const int rothighlimit = rotmid + 89;
 
 float I = 0;
 float Ir = 0;
@@ -107,20 +125,25 @@ int pressureSensorPin = A5;
 //int linFrontLimit = 140;
 //int linBackLimit = 890;
 int rotPos = A12;
+int rotServo_pin = 10;
 
 bool SDgo = 0;
 
-char *help = "Commands: \n\tparams will show the current parameters and acceptable ranges \n\treset will center linear mass and water tank (for trimming)\n\tupdate [-glidebottom|-glidetop|-number_of_glides|-rothighlimit|-rotlowlimit|-linfrontlimit|-linbacklimit|-tankhighlimit|-tanklowlimit|-linpos|-rotpos\n\t\t-tankpos|-linrate|-rotrate|-destime|-risetime|-tankmid|-linmid|-rotmid|-allowedWorkTime -linNoseUpTarget\n\t\t -linNoseDownTarget -linkp -linki -linkd -rateScale -rollkp -rollLimit] [newValue]\n\tcurrentpos shows current position of actuators\n\tstart starts glide cycle\n\tstop stops glide cycle\n\tlinear toggles linear PID controller on/off\n\trotary toggle toggles rotary controller on/off with default target of 0 degrees\n\trotary turn X rolls to X degrees\n\tfliproll flips the IMU roll angle\n\tsdstart opens file and starts datalogging\n\tsdstop <notes> stops datalogging, adds <notes>, and closes file\nIf the rotary motor acts weird during reset (goes to limit) keep calling reset until it centers...it should eventually center\n\n\tpressurecontrol\t-\tToggles pressure control on or off\n";
+char *help = "Commands: \n\tparams will show the current parameters and acceptable ranges \n\treset will center linear mass and water tank (for trimming)\n\tupdate [-rollover|-glidebottom|-glidetop|-number_of_glides|-rothighlimit|-rotlowlimit|-linfrontlimit|-linbacklimit|-tankhighlimit|-tanklowlimit|-linpos|-rotpos\n\t\t-tankpos|-linrate|-rotrate|-destime|-risetime|-tankmid|-linmid|-rotmid|-allowedWorkTime -linNoseUpTarget\n\t\t -linNoseDownTarget -linkp -linki -linkd -rateScale -rollkp -rollLimit] [newValue]\n\tcurrentpos shows current position of actuators\n\tstart starts glide cycle\n\tstop stops glide cycle\n\tlinear toggles linear PID controller on/off\n\trotary toggle toggles rotary controller on/off with default target of 0 degrees\n\trotary turn X rolls to X degrees\n\tfliproll flips the IMU roll angle\n\tsdstart opens file and starts datalogging\n\tsdstop <notes> stops datalogging, adds <notes>, and closes file\nIf the rotary motor acts weird during reset (goes to limit) keep calling reset until it centers...it should eventually center\n\n\tpressurecontrol\t-\tToggles pressure control on or off\n\n\tservoltage - \tshows servo voltage\n\ttoggle_hold - \ttoggles holding torque on servo\n\tcurrent_servo_position - \tself explanatory\n\tservoparameters - \tshows current servo parameters\n\tturnto # - \trotates servo to # (try 500-900 range, center is 700)\n\trotspeed # - \t changes rotation speed to #, Default is 800\n\tresetservocomm - \t resets serial communication with servo\n\n\n\t\tfloat \t - commands glider to float with linmass in front position";
 
 void setup()
 {
+  //setup gps
+  gpsSerial.begin(57600); // connect gps sensor
+  gpsSerial.print("$PMTK314,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0*29\r\n");
+  gpsSerial.print("$PMTK220,200*2C\r\n");
+  
   // setup imu
   um7.begin(&Serial3);
   Serial.begin(9600);
   Serial.setTimeout(10);
 //  Serial.println("\n```````````````````````````````````````````````````````````````````````````````\n   @@@@@'     @@@@        @@@@@@         ,@@@@@@`              @'@+,``:@,      \n   @@@@@@     @@@@       `@@@@@@        @@@@@@@@.            `@@@        @     \n   @@@@@@#    @@@@       @@@@@@@+      @@@@@@@@@:          `@             #    \n   @@@@@@@    @@@@      `@@@@@@@@      @@@@@:`,#+         #`              ,    \n   @@@@@@@@   @@@@      @@@@`@@@@      @@@@'            .+                 .   \n   @@@@@@@@`  @@@@     .@@@@ '@@@#     @@@@@`          #`                  :   \n   @@@@@@@@@  @@@@     @@@@.  @@@@      @@@@@:        @                    ,   \n   @@@@ @@@@. @@@@    ,@@@@,,,@@@@.      @@@@@#      @                     `   \n  `@@@# #@@@@ @@@#    @@@@@@@@@@@@@       @@@@@#                  ```     :    \n  .@@@#  @@@@'@@@+   ;@@@@@@@@@@@@@        @@@@@:,      ',,,   ;,,,,,,.   @    \n  ,@@@'  :@@@@@@@;   @@@@@@@@@@@@@@;        @@@@#.     `,,,,,  ;,,++,,,   .    \n  ;@@@;   @@@@@@@:  +@@@@      @@@@@  @@.  :@@@@#.     ;,,+,,  ;,, `,,.  #     \n  '@@@;   `@@@@@@,  @@@@@      ,@@@@  '@@@@@@@@@,`    `,,`',,  ',,,,,:   .     \n  #@@@:    @@@@@@. #@@@@        @@@@# :@@@@@@@@+,`    :,,,,,,, +,,++,,, @      \n  @@@@:     @@@@@. @@@@@        @@@@@ .@@@@@@@',,`   .,,'++',, +,,  ,,,        \n                                              +,,,,,,:,,   +,,`+,,,,,,`        \n                                              +''''';''`   :''`+'''''.         \n                                                                               \nNonlinear  and      Autonomous        Systems          Laboratory              \n");
-  Serial.println("Version 7.24.2015_pressurecontrol");
-  //Serial.println("RRRRRRRRRRRRRRRRR        OOOOOOOOO     UUUUUUUU     UUUUUUUU       GGGGGGGGGGGGGHHHHHHHHH     HHHHHHHHHIIIIIIIIIIEEEEEEEEEEEEEEEEEEEEEE            VVVVVVVV           VVVVVVVV 222222222222222   \nR::::::::::::::::R     OO:::::::::OO   U::::::U     U::::::U    GGG::::::::::::GH:::::::H     H:::::::HI::::::::IE::::::::::::::::::::E            V::::::V           V::::::V2:::::::::::::::22 \nR::::::RRRRRR:::::R  OO:::::::::::::OO U::::::U     U::::::U  GG:::::::::::::::GH:::::::H     H:::::::HI::::::::IE::::::::::::::::::::E            V::::::V           V::::::V2::::::222222:::::2 \nRR:::::R     R:::::RO:::::::OOO:::::::OUU:::::U     U:::::UU G:::::GGGGGGGG::::GHH::::::H     H::::::HHII::::::IIEE::::::EEEEEEEEE::::E            V::::::V           V::::::V2222222     2:::::2 \n  R::::R     R:::::RO::::::O   O::::::O U:::::U     U:::::U G:::::G       GGGGGG  H:::::H     H:::::H    I::::I    E:::::E       EEEEEE             V:::::V           V:::::V             2:::::2 \n  R::::R     R:::::RO:::::O     O:::::O U:::::D     D:::::UG:::::G                H:::::H     H:::::H    I::::I    E:::::E                           V:::::V         V:::::V              2:::::2 \n  R::::RRRRRR:::::R O:::::O     O:::::O U:::::D     D:::::UG:::::G                H::::::HHHHH::::::H    I::::I    E::::::EEEEEEEEEE                  V:::::V       V:::::V            2222::::2  \n  R:::::::::::::RR  O:::::O     O:::::O U:::::D     D:::::UG:::::G    GGGGGGGGGG  H:::::::::::::::::H    I::::I    E:::::::::::::::E                   V:::::V     V:::::V        22222::::::22   \n  R::::RRRRRR:::::R O:::::O     O:::::O U:::::D     D:::::UG:::::G    G::::::::G  H:::::::::::::::::H    I::::I    E:::::::::::::::E                    V:::::V   V:::::V       22::::::::222     \n  R::::R     R:::::RO:::::O     O:::::O U:::::D     D:::::UG:::::G    GGGGG::::G  H::::::HHHHH::::::H    I::::I    E::::::EEEEEEEEEE                     V:::::V V:::::V       2:::::22222        \n  R::::R     R:::::RO:::::O     O:::::O U:::::D     D:::::UG:::::G        G::::G  H:::::H     H:::::H    I::::I    E:::::E                                V:::::V:::::V       2:::::2             \n  R::::R     R:::::RO::::::O   O::::::O U::::::U   U::::::U G:::::G       G::::G  H:::::H     H:::::H    I::::I    E:::::E       EEEEEE                    V:::::::::V        2:::::2             \nRR:::::R     R:::::RO:::::::OOO:::::::O U:::::::UUU:::::::U  G:::::GGGGGGGG::::GHH::::::H     H::::::HHII::::::IIEE::::::EEEEEEEE:::::E ,,,,,,              V:::::::V         2:::::2       222222\nR::::::R     R:::::R OO:::::::::::::OO   UU:::::::::::::UU    GG:::::::::::::::GH:::::::H     H:::::::HI::::::::IE::::::::::::::::::::E ,::::,               V:::::V          2::::::2222222:::::2\nR::::::R     R:::::R   OO:::::::::OO       UU:::::::::UU        GGG::::::GGG:::GH:::::::H     H:::::::HI::::::::IE::::::::::::::::::::E ,::::,                V:::V           2::::::::::::::::::2\nRRRRRRRR     RRRRRRR     OOOOOOOOO           UUUUUUUUU             GGGGGG   GGGGHHHHHHHHH     HHHHHHHHHIIIIIIIIIIEEEEEEEEEEEEEEEEEEEEEE ,:::,,                 VVV            22222222222222222222\n                                                                                                                                       ,:::,\n                                                                                                                                                                                           ,,,,   \n");
+  Serial.println("Version 9.8.2015_RotaryAdded");
   Serial.println(help);
   delay(1000); //Wait for all the printing
 
@@ -141,7 +164,7 @@ void setup()
   param.tankMid = 285;
   param.linMid = 515;
   param.rotMid = rotmid;
-  param.allowedWorkTime = 30000;
+  param.allowedWorkTime = 40000;
   param.linNoseDownTarget = -30;
   param.linNoseUpTarget = 30;
   param.linkp = 10;
@@ -152,9 +175,11 @@ void setup()
   param.rollTarget = 0;
   param.fliproll = 0;
   param.rollLimit = 15;
-  param.number_of_glides = 4;
+  param.number_of_glides = 3;
   param.glide_cycle_bottom = 8;
   param.glide_cycle_top = 5;
+  param.desiredRotationAngle = 700;
+  param.rollover = 89;
 
   gliderStateMachine(GC_BEGIN);
   gliderStateMachine(GC_STOP);
@@ -203,6 +228,12 @@ void setup()
 
   logfile.println("millis,stamp,datetime,Pressure,Pitch,Roll,DrawWire,Rot.Pos,LinMassPos,tp1,tp2,yaw,rolld,pitchd,yawd,north,east,up,estimatedDepth");    
   */
+  
+  // SHOULD CENTER SERVO HERE
+  Serial.println("Centering servo...");
+  rotServo.attach(rotServo_pin, 1050, 1950);
+  rotServo.write(param.rotMid); //center servo (0 is fully one direction, 180 is other direction---it assumes a 180 degree servo, but ours is actually a 90 degree)
+  
 }
 
 void loop()
@@ -311,9 +342,9 @@ void loop()
   if(um7.updated_p) { // pose packet
 //  if(1) {
       um7.updated_p = 0;
-      // Serial.println("NEW IMU DATA");
+      //Serial.println("NEW IMU DATA");
       //Serial.print("t_p1 = "); Serial.print(um7.t_p1); Serial.println("; ");
-      // Serial.print("roll = "); Serial.print(um7.roll); Serial.println("; ");
+      //Serial.print("roll = "); Serial.print(um7.roll); Serial.println("; ");
       //Serial.print("pitch = "); Serial.print(um7.pitch); Serial.println("; ");
       //Serial.print("yaw = "); Serial.print(um7.yaw); Serial.println("; ");
       //Serial.print("rolld = "); Serial.print(um7.rolld); Serial.println("; ");
@@ -387,10 +418,34 @@ void loop()
       SDgo = 0;
       logfile.close();
       Serial.println("Logging stopped and log file was closed");
-    } 
+    }
+    else if(strcmp(arg[0], "turnto") == 0) {
+      Serial.println("Moving to desired turn angle...");
+      param.desiredRotationAngle = atoi(arg[1]);
+      if (param.desiredRotationAngle < 0) {
+        param.desiredRotationAngle = 0;
+      }
+      else if (param.desiredRotationAngle > 179) {
+        param.desiredRotationAngle = 179;
+      }
+    }
+    else if(strcmp(arg[0], "servoparameters") == 0) {
+      Serial.print("Desired angle: ");
+      Serial.println(param.desiredRotationAngle);
+    }
+    else if(strcmp(arg[0], "float") == 0) {
+      Serial.println("FLOAT!!");
+      gliderStateMachine(GC_FLOAT);
+    }
+    else if(strcmp(arg[0], "circle") == 0) {
+      gliderStateMachine(GC_CIRCLE);
+    }
     else if(strcmp(arg[0], "update") == 0) {  // update parameter
       if(strcmp(arg[1], "-linpos") == 0) {
         param.linPos = atoi(arg[2]);
+      }
+      if(strcmp(arg[1], "-rollover") == 0) {
+        param.rollover = atoi(arg[2]);
       }
       if(strcmp(arg[1], "-rotpos") == 0) {
         param.rotPos = atoi(arg[2]);
@@ -593,11 +648,25 @@ void loop()
       Serial.print("Glide cyble top: ");
       Serial.println(param.glide_cycle_top);
       
+      Serial.print("Rollover: ");
+      Serial.println(param.rollover);
+      
     }
       
     else {
       Serial.println(help); // print help is no match was found
     }
+  }
+  
+  if(gpsSerial.available()){ // check for gps data  THIS WAS A WHILE LOOP IN DONNA'S CODE. TONY CHANGED TO IF.
+  unsigned char GPS=gpsSerial.read();
+   if(gps.encode(GPS)){ // encode gps data
+    gps.get_position(&lat,&lon); // get latitude and longitude
+    // display position
+    Serial.print("Position: ");
+    Serial.print("lat: ");Serial.print(lat);// print latitude
+    Serial.print("   lon: ");Serial.println(lon); // print longitude
+   }
   }
 
 }
@@ -607,6 +676,7 @@ void gliderStateMachine(int cmd) {
   static int state = 0;        // machine state
   static bool enGlider = 0;    // enable cycle
   static bool entry;           // if it's first time executing the current state
+  static bool circle = 0;
   static bool pumpDone;        // If the pump is done pumping
   static bool linDone;         // If the linear mass is done moving
   static bool DoLinPID = 0;
@@ -625,12 +695,22 @@ void gliderStateMachine(int cmd) {
     enGlider = 0;
   }
   
+  if(cmd == GC_CIRCLE) {
+    if(circle) {
+      circle = 0;
+      Serial.println("Circle on!");
+    }
+    else {
+      circle = 1;
+      Serial.println("Circle on!");
+    }
+  }
+  
   if(cmd == GC_NULL) { // continue normal state machine run
 //    Serial.print("Roll: ");
 //    Serial.println(um7.roll);
 //    Serial.print("Rotary position: ");
 //    Serial.println(getFiltAnalog(rotPos));
-
 
 //digitalWrite(pumpOn, HIGH);
 //digitalWrite(pumpDir, LOW); // WAS HIGH
@@ -645,16 +725,17 @@ void gliderStateMachine(int cmd) {
     
       case ME_NOSE_DOWN:
         if(entry) {
+          Serial.println("ME_NOSE_DOWN");
           t0 = millis();
-          if(DoLinPID) {
-            I = 0;
-            param.linRate = linMassRatePID(param.linNoseDownTarget);
-            analogWrite(motAPWM, param.linRate);
-          }
-          else {
-            moveLinMass(param.linFrontLimit, param.linRate);//sets direction then turns on
-          }
           moveWater(param.tankBackLimit); //sets pump direction then turns pump on
+          
+          if(circle) {
+            Serial.println("Circling down");
+            rotServo.write(param.rotMid+param.rollover);
+          }
+          
+          moveLinMass(param.linMid, param.linRate);
+          
           entry = 0;
           pumpDone = 0;
           linDone = 0;
@@ -671,6 +752,17 @@ void gliderStateMachine(int cmd) {
           digitalWrite(pumpOn, LOW);
           pumpDone = 1;
         }
+        
+        if(pumpDone) {
+          
+        if(DoLinPID) {
+            I = 0;
+            param.linRate = linMassRatePID(param.linNoseDownTarget);
+            analogWrite(motAPWM, param.linRate);
+          }
+          else if(!linDone) {
+            moveLinMass(param.linFrontLimit, param.linRate);//sets direction then turns on
+          }
         
         // Turn linear mass off when it's time
         if(DoLinPID) {
@@ -698,6 +790,13 @@ void gliderStateMachine(int cmd) {
             analogWrite(motAPWM, 0);
             digitalWrite(motStdby, LOW);
             linDone = 1;
+          }
+        }
+        }
+        else {
+          if(abs(getFiltAnalog(linPos)-param.linMid) < 20) {
+            digitalWrite(motAPWM, 0);
+            digitalWrite(motStdby, LOW);
           }
         }
         
@@ -741,6 +840,7 @@ void gliderStateMachine(int cmd) {
         
       case ME_GLIDE_DOWN:
           if(entry) {
+            Serial.println("ME_GLIDE_DOWN");
             pumpOff();
             //t0 = millis();
             entry = 0;
@@ -771,6 +871,13 @@ void gliderStateMachine(int cmd) {
               analogWrite(motAPWM, param.linRate);
             }
           }
+          else {
+          if((abs(getFiltAnalog(linPos) - param.linFrontLimit)) < 20) {
+            analogWrite(motAPWM, 0);
+            digitalWrite(motStdby, LOW);
+            linDone = 1;
+            }
+          }
           
           if(pressureControlOn) {
             est_depth = 0.0423062 * (getFiltAnalog(pressureSensorPin) - 102.3);
@@ -788,16 +895,18 @@ void gliderStateMachine(int cmd) {
         
       case ME_NOSE_UP:
         if(entry) {
+          Serial.println("ME_NOSE_UP");
           t0 = millis();
           I = 0;
-          if(DoLinPID) {
-            param.linRate = linMassRatePID(param.linNoseUpTarget);
-            analogWrite(motAPWM, param.linRate);
-          }
-          else {
-            moveLinMass(param.linBackLimit, param.linRate);//set linmass direction and turn on
-          }
           moveWater(param.tankFrontLimit);//set pump direction and turn on
+          
+          moveLinMass(param.linMid, param.linRate);
+          
+          if (circle) {
+            Serial.println("Circling down");
+            rotServo.write(param.rotMid-param.rollover);
+          }
+          
           entry = 0;
           pumpDone = 0;
           linDone = 0;
@@ -813,6 +922,15 @@ void gliderStateMachine(int cmd) {
           digitalWrite(pumpOn, LOW);
           pumpDone = 1;
         }
+        
+        if(pumpDone) {
+          if(DoLinPID) {
+            param.linRate = linMassRatePID(param.linNoseUpTarget);
+            analogWrite(motAPWM, param.linRate);
+          }
+          else {
+            moveLinMass(param.linBackLimit, param.linRate);//set linmass direction and turn on
+          }
         
         if(DoLinPID) {
           int ret = um7.refresh();
@@ -841,6 +959,13 @@ void gliderStateMachine(int cmd) {
             linDone = 1;
           }
         }
+        }
+        else {
+          if(abs(getFiltAnalog(linPos)-param.linMid) < 20) {
+            digitalWrite(motAPWM, 0);
+            digitalWrite(motStdby, LOW);
+          }
+        }
         
         if(pumpDone) {
           if(DoLinPID) {
@@ -861,6 +986,10 @@ void gliderStateMachine(int cmd) {
           est_depth = 0.0423062 * (getFiltAnalog(pressureSensorPin) - 102.3);
           if(est_depth <= param.glide_cycle_top) {
             glide_cycles_completed += 1;
+            Serial.print(glide_cycles_completed);
+            Serial.print(" of ");
+            Serial.print(param.number_of_glides);
+            Serial.println(" glide cycles completed.");
             if( glide_cycles_completed < param.number_of_glides ) {
               digitalWrite(pumpOn, LOW);
               state = ME_NOSE_DOWN;
@@ -877,6 +1006,10 @@ void gliderStateMachine(int cmd) {
         
         if(millis() - t0 > param.riseTime) { //exit condition
           glide_cycles_completed += 1;
+          Serial.print(glide_cycles_completed);
+          Serial.print(" of ");
+          Serial.print(param.number_of_glides);
+          Serial.println(" glide cycles completed.");
           if( glide_cycles_completed < param.number_of_glides ) {
             digitalWrite(pumpOn, LOW);
             state = ME_NOSE_DOWN;
@@ -884,7 +1017,7 @@ void gliderStateMachine(int cmd) {
           }
           else {
             //stop
-            state = ME_PAUSE;
+            state = ME_FLOAT;
             glide_cycles_completed = 0;
           }
           }
@@ -899,6 +1032,7 @@ void gliderStateMachine(int cmd) {
         
       case ME_GLIDE_UP:
         if(entry) {
+          Serial.println("ME_GLIDE_UP");
           //t0 = millis();
           pumpOff();
           entry = 0;
@@ -929,18 +1063,31 @@ void gliderStateMachine(int cmd) {
             analogWrite(motAPWM, param.linRate);
           }
         }
+        else {
+          if(abs(getFiltAnalog(linPos) - param.linBackLimit) < 20) {
+            analogWrite(motAPWM, 0);
+            digitalWrite(motStdby, LOW);
+            linDone = 1;
+          }
+        }
         
         if(pressureControlOn) {
           est_depth = 0.0423062 * (getFiltAnalog(pressureSensorPin) - 102.3);
           if(est_depth <= param.glide_cycle_top) {
             glide_cycles_completed += 1;
+            Serial.print(glide_cycles_completed);
+            Serial.print(" of ");
+            Serial.print(param.number_of_glides);
+            Serial.println(" glide cycles completed.");
+            
             if( glide_cycles_completed < param.number_of_glides ) {
               state = ME_NOSE_DOWN;
               entry = 1;
             }
             else {
               //stop
-              state = ME_PAUSE;
+              state = ME_FLOAT;
+              entry = 1;
               glide_cycles_completed = 0;
             }
             }
@@ -948,23 +1095,56 @@ void gliderStateMachine(int cmd) {
         
         if(millis() - t0 > param.riseTime) {
           glide_cycles_completed += 1;
+          Serial.print(glide_cycles_completed);
+          Serial.print(" of ");
+          Serial.print(param.number_of_glides);
+          Serial.println(" glide cycles completed.");
+          
           if( glide_cycles_completed < param.number_of_glides ) {
             state = ME_NOSE_DOWN;
             entry = 1;
           }
           else {
             //stop
-            state = ME_PAUSE;
+            state = ME_FLOAT;
+            entry = 1;
             glide_cycles_completed = 0;
           }
         }
         break;
         
       case ME_PAUSE:
+      //Serial.println("ME_PAUSE");
         digitalWrite(pumpOn, LOW);
         analogWrite(motAPWM, 0);
         analogWrite(motBPWM, 0);
         digitalWrite(motStdby, LOW);
+      break;
+
+      case ME_FLOAT:
+      if(entry) {
+        Serial.println("ME_FLOAT");
+        moveWater(param.tankFrontLimit);//set pump direction and turn on
+        moveLinMass(param.linFrontLimit, param.linRate); //moves linmass all the way forward
+        entry = 0;
+        linDone = 0;
+      }
+
+      if(abs(getFiltAnalog(linPos) - param.linFrontLimit) < 20) {
+            analogWrite(motAPWM, 0);
+            digitalWrite(motStdby, LOW);
+            linDone = 1;
+      }
+
+      if(abs(getFiltAnalog(tankLevel)-param.tankFrontLimit) < 20) {
+          digitalWrite(pumpOn, LOW);
+          pumpDone = 1;
+        }
+
+      if(linDone && pumpDone) {
+        enGlider = 0;
+      }
+      
       break;
     }
   }
@@ -1005,10 +1185,10 @@ void gliderStateMachine(int cmd) {
   if(cmd == GC_RESET) { // GC_RESET to trimming position    
     moveWater(param.tankMid);
     //turn off pump when it's time
-      while(abs(getFiltAnalog(tankLevel)-param.tankMid) > 20) {
-      }
-      digitalWrite(pumpOn, LOW);
-      Serial.println("Tank Reset");
+    while(abs(getFiltAnalog(tankLevel)-param.tankMid) > 20) {
+    }
+    digitalWrite(pumpOn, LOW);
+    Serial.println("Tank Reset");
 
     moveLinMass(param.linMid, param.linRate);
     // Turn linear mass off when it's time
@@ -1055,11 +1235,18 @@ void gliderStateMachine(int cmd) {
     pumpOff();
     digitalWrite(motAPWM, 0);
     digitalWrite(motStdby, LOW);
+    glide_cycles_completed = 0;
   }
   
   if(cmd == GC_START) { //begin gliding cycle
     enGlider = 1;
     state = ME_NOSE_DOWN;
+    entry = 1;
+  }
+
+  if(cmd == GC_FLOAT) {
+    enGlider = 1;
+    state = ME_FLOAT;
     entry = 1;
   }
   
@@ -1318,8 +1505,6 @@ float linMassRatePID(int dest) {
   kd=param.linkd;//
   float P, D, rate;
   int currentPos = getFiltAnalog(linPos);//This is giving some funky positions. Maybe need to filter a bit harder.
-  Serial.print("current anlge: ");
-  Serial.println(um7.roll);
   int linpitchlimit = 45;
   if(dest < -linpitchlimit) {//check bounds
     Serial.println("Cannot go that far forward");
@@ -1434,3 +1619,4 @@ void error(char *str)
   Serial.print("error: ");
   Serial.println(str);
 }
+
